@@ -59,10 +59,27 @@ def login():
 @login_required
 def dashboard():
     budgets = []
+    # Get budget statistics for the current user
     if current_user.role == 'solicitante':
         budgets = Budget.query.filter_by(solicitante_id=current_user.id).all()
+        user_pendente = sum(1 for b in budgets if b.status == 'pendente')
+        user_aprovado = sum(1 for b in budgets if b.status == 'aprovado')
+        user_rejeitado = sum(1 for b in budgets if b.status == 'rejeitado')
+        return render_template('dashboard.html', 
+                             budgets=budgets,
+                             user_pendente=user_pendente,
+                             user_aprovado=user_aprovado,
+                             user_rejeitado=user_rejeitado)
     elif current_user.role == 'aprovador':
         budgets = Budget.query.filter_by(aprovador_id=current_user.id, status='pendente').all()
+        total_pendente = Budget.query.filter_by(aprovador_id=current_user.id, status='pendente').count()
+        total_aprovado = Budget.query.filter_by(aprovador_id=current_user.id, status='aprovado').count()
+        total_rejeitado = Budget.query.filter_by(aprovador_id=current_user.id, status='rejeitado').count()
+        return render_template('dashboard.html', 
+                             budgets=budgets,
+                             user_pendente=total_pendente,
+                             user_aprovado=total_aprovado,
+                             user_rejeitado=total_rejeitado)
     elif current_user.role == 'administrador':
         budgets = Budget.query.all()
         users = User.query.all()
