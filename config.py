@@ -2,7 +2,9 @@ import os
 import secrets
 
 class Config:
-    SECRET_KEY = secrets.token_hex(32)
+    # Gera uma chave secreta fixa para desenvolvimento
+    dev_key = '2d9c6d66890c4a2b948f54c42e05b0c8'
+    SECRET_KEY = os.environ.get('SECRET_KEY', dev_key)
     SQLALCHEMY_DATABASE_URI = 'sqlite:///database.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     

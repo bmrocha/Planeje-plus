@@ -3,7 +3,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 from urllib.parse import urlparse
 from datetime import datetime
-from models import db, User, Budget, EmailConfig
+from models import db, User, Budget, EmailConfig, Sector
 from forms import LoginForm, RegistrationForm, ResetPasswordRequestForm, ResetPasswordForm
 from flask_mail import Message
 from extensions import mail
