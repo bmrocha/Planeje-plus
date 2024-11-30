@@ -309,7 +309,7 @@
     <div class="content-wrapper">
         <!-- Navbar -->
         {% if not request.endpoint == 'login' and not request.endpoint == 'reset_password_request' and not request.endpoint == 'reset_password' %}
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <nav class="navbar navbar-expand-lg navbar-dark">
             <div class="container">
                 <a class="navbar-brand" href="{{ url_for('dashboard') }}">
                     <img src="{{ url_for('static', filename='img/logo-planeje.png') }}" alt="Logo" height="40">
@@ -323,38 +323,30 @@
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">Dashboard</a>
                         </li>
-                        {% if current_user.role != 'administrador' %}
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'new_budget' %}active{% endif %}" href="{{ url_for('new_budget') }}">
-                                <i class="fas fa-plus-circle me-1"></i>Nova Solicitação
-                            </a>
-                        </li>
-                        {% endif %}
                         {% if current_user.role == 'administrador' %}
                         <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'register' %}active{% endif %}" href="{{ url_for('register') }}">
-                                <i class="fas fa-user-plus me-1"></i>Cadastrar Usuário
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'email_config' %}active{% endif %}" href="{{ url_for('email_config') }}">
-                                <i class="fas fa-envelope-open-text me-1"></i>Configurar Email
-                            </a>
+                            <a class="nav-link {% if request.endpoint == 'register' %}active{% endif %}" href="{{ url_for('register') }}">Usuários</a>
                         </li>
                         {% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'new_budget' %}active{% endif %}" href="{{ url_for('new_budget') }}">Novo Orçamento</a>
+                        </li>
                     </ul>
                     <div class="d-flex align-items-center">
-                        <div class="theme-toggle position-relative me-3" onclick="toggleTheme()" data-tooltip="Alternar tema claro/escuro">
+                        <div class="theme-toggle me-3" onclick="toggleTheme()">
                             <i class="fas fa-moon"></i>
                         </div>
                         <div class="dropdown">
-                            <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
                                 <i class="fas fa-user me-2"></i>{{ current_user.name }}
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="{{ url_for('profile') }}">Perfil</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('profile') }}"><i class="fas fa-user-cog me-2"></i>Perfil</a></li>
+                                {% if current_user.role == 'administrador' %}
+                                <li><a class="dropdown-item" href="{{ url_for('email_config') }}"><i class="fas fa-envelope me-2"></i>Config. Email</a></li>
+                                {% endif %}
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ url_for('logout') }}">Sair</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Sair</a></li>
                             </ul>
                         </div>
                     </div>
