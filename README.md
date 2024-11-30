@@ -74,6 +74,6 @@ Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalh
 
 ## 👨‍💻 Desenvolvedor
 
-- **Nome**: Seu Nome
-- **WhatsApp**: [seu-whatsapp]
-- **Email**: [seu-email]
+- **Nome**: Bruno Martins Rocha
+- **WhatsApp**: [31-98439-0045]
+- **Email**: [bmrocha7l@gmail.com]
