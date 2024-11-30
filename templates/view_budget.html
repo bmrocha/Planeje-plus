@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Detalhes do Orçamento</h5>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i>Voltar
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="fw-bold">Título:</label>
+                    <p>{{ budget.title }}</p>
+                </div>
+                <div class="mb-3">
+                    <label class="fw-bold">Responsável pela Solicitação:</label>
+                    <p>{{ budget.solicitante.name }}</p>
+                </div>
+                <div class="mb-3">
+                    <label class="fw-bold">Agência:</label>
+                    <p>{{ budget.agency }}</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="fw-bold">Data da Solicitação:</label>
+                    <p>{{ budget.request_date.strftime('%d/%m/%Y') }}</p>
+                </div>
+                <div class="mb-3">
+                    <label class="fw-bold">Responsável pela Aprovação:</label>
+                    <p>{{ budget.aprovador.name }}</p>
+                </div>
+                <div class="mb-3">
+                    <label class="fw-bold">Status:</label>
+                    <span class="badge {% if budget.status == 'pendente' %}bg-warning
+                                   {% elif budget.status == 'aprovado' %}bg-success
+                                   {% else %}bg-danger{% endif %}">
+                        {{ budget.status|title }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="fw-bold">Descrição:</label>
+            <p>{{ budget.description }}</p>
+        </div>
+
+        {% if budget.justification %}
+        <div class="mb-3">
+            <label class="fw-bold">Justificativa:</label>
+            <p>{{ budget.justification }}</p>
+        </div>
+        {% endif %}
+
+        {% if budget.attachments %}
+        <div class="mb-3">
+            <label class="fw-bold">Anexos:</label>
+            <ul class="list-group">
+                {% for attachment in budget.attachments %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>{{ attachment.filename }}</span>
+                    <a href="{{ url_for('download_attachment', id=attachment.id) }}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-download me-1"></i>Baixar
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        {% if current_user.role == 'aprovador' and budget.status == 'pendente' and budget.aprovador_id == current_user.id %}
+        <div class="mt-4">
+            <button class="btn btn-success me-2" onclick="showApprovalModal()">
+                <i class="fas fa-check me-1"></i>Aprovar
+            </button>
+            <button class="btn btn-danger" onclick="showRejectionModal()">
+                <i class="fas fa-times me-1"></i>Rejeitar
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal de Aprovação -->
+<div class="modal fade" id="approvalModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Aprovar Orçamento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('approve_budget', id=budget.id) }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="approvalJustification" class="form-label">Justificativa</label>
+                        <textarea class="form-control" id="approvalJustification" name="justification" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Confirmar Aprovação</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Rejeição -->
+<div class="modal fade" id="rejectionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Rejeitar Orçamento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('reject_budget', id=budget.id) }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="rejectionJustification" class="form-label">Justificativa da Rejeição</label>
+                        <textarea class="form-control" id="rejectionJustification" name="justification" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Confirmar Rejeição</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function showApprovalModal() {
+    var modal = new bootstrap.Modal(document.getElementById('approvalModal'));
+    modal.show();
+}
+
+function showRejectionModal() {
+    var modal = new bootstrap.Modal(document.getElementById('rejectionModal'));
+    modal.show();
+}
+</script>
+{% endblock %}

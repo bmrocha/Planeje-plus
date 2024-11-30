@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Configurações de Email</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                        <div class="alert alert-info" role="alert">
+                            {{ messages[0] }}
+                        </div>
+                        {% endif %}
+                        {% endwith %}
+
+                        <div class="mb-3">
+                            <label for="smtp_server" class="form-label">Servidor SMTP</label>
+                            <input type="text" class="form-control" id="smtp_server" name="smtp_server" 
+                                   value="{{ config.smtp_server if config else 'smtp.gmail.com' }}" required>
+                            <div class="form-text">Ex: smtp.gmail.com, smtp.office365.com</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="smtp_port" class="form-label">Porta SMTP</label>
+                            <input type="number" class="form-control" id="smtp_port" name="smtp_port" 
+                                   value="{{ config.smtp_port if config else 587 }}" required>
+                            <div class="form-text">Portas comuns: 587 (TLS), 465 (SSL)</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="smtp_username" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="smtp_username" name="smtp_username" 
+                                   value="{{ config.smtp_username if config }}" required>
+                            <div class="form-text">Email que será usado para enviar as notificações</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="smtp_password" class="form-label">Senha</label>
+                            <input type="password" class="form-control" id="smtp_password" name="smtp_password" required>
+                            <div class="form-text">Para Gmail, use uma senha de app. <a href="https://support.google.com/accounts/answer/185833" target="_blank">Saiba mais</a></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="use_tls" name="use_tls" 
+                                       {{ 'checked' if not config or config.use_tls }}>
+                                <label class="form-check-label" for="use_tls">Usar TLS</label>
+                            </div>
+                            <div class="form-text">Recomendado manter ativado para segurança</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="default_sender" class="form-label">Nome do Remetente</label>
+                            <input type="text" class="form-control" id="default_sender" name="default_sender" 
+                                   value="{{ config.default_sender if config else 'Sistema de Orçamentos' }}" required>
+                            <div class="form-text">Nome que aparecerá como remetente dos emails</div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Salvar Configurações
+                            </button>
+                            <a href="{{ url_for('test_email') }}" class="btn btn-secondary">
+                                <i class="fas fa-paper-plane me-1"></i>Testar Configuração
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

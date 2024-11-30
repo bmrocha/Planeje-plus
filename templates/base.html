@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Planeje+{% endblock %}</title>
+    
+    <!-- CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* Paleta de cores principal */
+            --color-dark: #13293d;
+            --color-primary: #006494;
+            --color-secondary: #247ba0;
+            --color-accent: #1b98e0;
+            --color-light: #e8f1f2;
+            
+            /* Variáveis Bootstrap personalizadas */
+            --bs-primary: var(--color-primary);
+            --bs-primary-rgb: 0, 100, 148;
+            --bs-secondary: var(--color-secondary);
+            --bs-secondary-rgb: 36, 123, 160;
+            --bs-body-color: var(--color-dark);
+            --bs-body-bg: var(--color-light);
+            --bs-link-color: var(--color-accent);
+            --bs-link-hover-color: var(--color-secondary);
+            
+            --transition-speed: 0.3s;
+        }
+
+        [data-bs-theme="dark"] {
+            --bs-body-color: var(--color-light);
+            --bs-body-bg: var(--color-dark);
+            --bs-primary: var(--color-accent);
+            --bs-primary-rgb: 27, 152, 224;
+            --bs-secondary: var(--color-secondary);
+            --bs-secondary-rgb: 36, 123, 160;
+        }
+
+        /* Estilos de botões personalizados */
+        .btn-primary {
+            background-color: var(--color-primary);
+            border-color: var(--color-primary);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--color-secondary);
+            border-color: var(--color-secondary);
+        }
+
+        .btn-outline-primary {
+            color: var(--color-primary);
+            border-color: var(--color-primary);
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--color-primary);
+            border-color: var(--color-primary);
+        }
+
+        /* Navbar personalizada */
+        .navbar {
+            background-color: var(--color-dark) !important;
+            border-bottom: 1px solid rgba(232, 241, 242, 0.1);
+        }
+
+        .navbar-light .navbar-nav .nav-link {
+            color: var(--color-light) !important;
+        }
+
+        .navbar-light .navbar-nav .nav-link:hover {
+            color: var(--color-accent) !important;
+        }
+
+        /* Cards personalizados */
+        .card {
+            background-color: rgba(232, 241, 242, 0.05);
+            border: 1px solid rgba(232, 241, 242, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Outros estilos base */
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+        }
+
+        .content-wrapper {
+            flex: 1 0 auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Toast personalizado */
+        .toast {
+            background-color: var(--color-dark);
+            color: var(--color-light);
+        }
+
+        /* Dropdown personalizado */
+        .dropdown-menu {
+            background-color: var(--color-dark);
+            border: 1px solid rgba(232, 241, 242, 0.1);
+        }
+
+        .dropdown-item {
+            color: var(--color-light);
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--color-primary);
+            color: var(--color-light);
+        }
+
+        /* Tema escuro específico */
+        [data-bs-theme="dark"] {
+            .navbar {
+                background-color: var(--color-dark) !important;
+            }
+
+            .card {
+                background-color: rgba(19, 41, 61, 0.95);
+            }
+
+            .dropdown-menu {
+                background-color: var(--color-dark);
+            }
+        }
+
+        /* Dark theme */
+        body.dark-theme {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+
+        body.dark-theme .navbar {
+            background-color: #2d2d2d !important;
+        }
+
+        body.dark-theme .navbar-light .navbar-nav .nav-link {
+            color: #ffffff;
+        }
+
+        body.dark-theme .navbar-light .navbar-nav .nav-link:hover {
+            color: #0dcaf0;
+        }
+
+        body.dark-theme .card {
+            background-color: #2d2d2d;
+            color: #ffffff;
+        }
+
+        body.dark-theme .table {
+            color: #ffffff;
+        }
+
+        body.dark-theme .table-hover tbody tr:hover {
+            background-color: #3d3d3d;
+        }
+
+        body.dark-theme .modal-content {
+            background-color: #2d2d2d;
+            color: #ffffff;
+        }
+
+        body.dark-theme .dropdown-menu {
+            background-color: #2d2d2d;
+        }
+
+        body.dark-theme .dropdown-item {
+            color: #ffffff;
+        }
+
+        body.dark-theme .dropdown-item:hover {
+            background-color: #3d3d3d;
+            color: #0dcaf0;
+        }
+
+        /* Theme toggle button */
+        .theme-toggle {
+            cursor: pointer;
+            padding: 8px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid transparent;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .theme-toggle i {
+            font-size: 1rem;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .theme-toggle:hover i {
+            transform: rotate(180deg);
+        }
+
+        /* Light theme */
+        .navbar-light .theme-toggle {
+            background-color: #f8f9fa;
+            color: #495057;
+            border-color: #e9ecef;
+        }
+
+        .navbar-light .theme-toggle:hover {
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+            color: #212529;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-light .theme-toggle:active {
+            background-color: #dee2e6;
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Dark theme */
+        .dark-theme .theme-toggle {
+            background-color: #343a40;
+            color: #f8f9fa;
+            border-color: #495057;
+        }
+
+        .dark-theme .theme-toggle:hover {
+            background-color: #495057;
+            border-color: #6c757d;
+            color: #ffffff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .dark-theme .theme-toggle:active {
+            background-color: #212529;
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Tooltip style */
+        .theme-toggle::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 6px 12px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            z-index: 1000;
+        }
+
+        .theme-toggle:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Focus styles for accessibility */
+        .theme-toggle:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+        }
+
+        /* Reduced motion preference */
+        @media (prefers-reduced-motion: reduce) {
+            .theme-toggle {
+                transition: none;
+            }
+            .theme-toggle i {
+                transition: none;
+            }
+            .theme-toggle:hover i {
+                transform: none;
+            }
+        }
+    </style>
+    {% block styles %}{% endblock %}
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="toast align-items-center text-white bg-{{ category }} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="d-flex">
+                            <div class="toast-body">{{ message }}</div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <div class="content-wrapper">
+        <!-- Navbar -->
+        {% if not request.endpoint == 'login' and not request.endpoint == 'reset_password_request' and not request.endpoint == 'reset_password' %}
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container">
+                <a class="navbar-brand" href="{{ url_for('dashboard') }}">
+                    <img src="{{ url_for('static', filename='img/logo-planeje.png') }}" alt="Logo" height="40">
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    {% if current_user.is_authenticated %}
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">Dashboard</a>
+                        </li>
+                        {% if current_user.role != 'administrador' %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'new_budget' %}active{% endif %}" href="{{ url_for('new_budget') }}">
+                                <i class="fas fa-plus-circle me-1"></i>Nova Solicitação
+                            </a>
+                        </li>
+                        {% endif %}
+                        {% if current_user.role == 'administrador' %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'register' %}active{% endif %}" href="{{ url_for('register') }}">
+                                <i class="fas fa-user-plus me-1"></i>Cadastrar Usuário
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'email_config' %}active{% endif %}" href="{{ url_for('email_config') }}">
+                                <i class="fas fa-envelope-open-text me-1"></i>Configurar Email
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                    <div class="d-flex align-items-center">
+                        <div class="theme-toggle position-relative me-3" onclick="toggleTheme()" data-tooltip="Alternar tema claro/escuro">
+                            <i class="fas fa-moon"></i>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user me-2"></i>{{ current_user.name }}
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{{ url_for('profile') }}">Perfil</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('logout') }}">Sair</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
+        {% endif %}
+
+        <!-- Content -->
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function showToast(message, category) {
+            const toastContainer = document.querySelector('.toast-container');
+            const toastHtml = `
+                <div class="toast align-items-center text-white bg-${category} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">${message}</div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            `;
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            const toast = toastContainer.lastElementChild;
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+            
+            toast.addEventListener('hidden.bs.toast', () => {
+                toast.remove();
+            });
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            const themeToggle = document.querySelector('.theme-toggle');
+            const icon = themeToggle.querySelector('i');
+            const navbar = document.querySelector('.navbar');
+            
+            if (body.classList.contains('dark-theme')) {
+                body.classList.remove('dark-theme');
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+                navbar.classList.remove('navbar-dark');
+                navbar.classList.add('navbar-light');
+                localStorage.setItem('theme', 'light');
+                themeToggle.setAttribute('data-tooltip', 'Ativar tema escuro');
+            } else {
+                body.classList.add('dark-theme');
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+                navbar.classList.remove('navbar-light');
+                navbar.classList.add('navbar-dark');
+                localStorage.setItem('theme', 'dark');
+                themeToggle.setAttribute('data-tooltip', 'Ativar tema claro');
+            }
+        }
+
+        // Aplicar tema salvo
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme');
+            const body = document.body;
+            const themeToggle = document.querySelector('.theme-toggle');
+            const icon = themeToggle.querySelector('i');
+            const navbar = document.querySelector('.navbar');
+
+            if (savedTheme === 'dark') {
+                body.classList.add('dark-theme');
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+                navbar.classList.remove('navbar-light');
+                navbar.classList.add('navbar-dark');
+                themeToggle.setAttribute('data-tooltip', 'Ativar tema claro');
+            } else {
+                themeToggle.setAttribute('data-tooltip', 'Ativar tema escuro');
+            }
+
+            // Detectar preferência do sistema
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+            prefersDark.addEventListener('change', (e) => {
+                if (!localStorage.getItem('theme')) {
+                    if (e.matches) {
+                        body.classList.add('dark-theme');
+                        icon.classList.remove('fa-moon');
+                        icon.classList.add('fa-sun');
+                    } else {
+                        body.classList.remove('dark-theme');
+                        icon.classList.remove('fa-sun');
+                        icon.classList.add('fa-moon');
+                    }
+                }
+            });
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

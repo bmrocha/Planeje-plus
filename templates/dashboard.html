@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block content %}
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+        <a class="navbar-brand" href="#">
+            <img src="{{ url_for('static', filename='img/logo-planeje.png') }}" alt="Logo" height="40">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#">Dashboard</a>
+                </li>
+                {% if current_user.role == 'administrador' %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('register') }}">Usuários</a>
+                </li>
+                {% endif %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('new_budget') }}">Novo Orçamento</a>
+                </li>
+            </ul>
+            <div class="d-flex align-items-center">
+                <div class="theme-toggle me-3" onclick="toggleTheme()">
+                    <i class="fas fa-moon"></i>
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user me-2"></i>{{ current_user.name }}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{{ url_for('profile') }}"><i class="fas fa-user-cog me-2"></i>Perfil</a></li>
+                        {% if current_user.role == 'administrador' %}
+                        <li><a class="dropdown-item" href="{{ url_for('email_config') }}"><i class="fas fa-envelope me-2"></i>Config. Email</a></li>
+                        {% endif %}
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Sair</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-4">
+    {% if current_user.role == 'administrador' %}
+    <!-- Estatísticas de Usuários para Administradores -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6 col-lg-3">
+            <div class="dashboard-card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2">Total de Usuários</h6>
+                    <h2 class="card-title mb-0">{{ total_users }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="dashboard-card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2">Solicitantes</h6>
+                    <h2 class="card-title mb-0">{{ solicitantes }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="dashboard-card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2">Aprovadores</h6>
+                    <h2 class="card-title mb-0">{{ aprovadores }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="dashboard-card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2">Administradores</h6>
+                    <h2 class="card-title mb-0">{{ administradores }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Estatísticas de Orçamentos -->
+    <div class="row g-4">
+        <div class="col-md-6 col-lg-3">
+            <div class="dashboard-card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2">Orçamentos Pendentes</h6>
+                    <h2 class="card-title mb-0">{{ user_pendente }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="dashboard-card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2">Orçamentos Aprovados</h6>
+                    <h2 class="card-title mb-0">{{ user_aprovado }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="dashboard-card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2">Orçamentos Rejeitados</h6>
+                    <h2 class="card-title mb-0">{{ user_rejeitado }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Orçamentos -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="dashboard-card">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">Orçamentos Recentes</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Título</th>
+                                    <th>Solicitante</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for budget in budgets %}
+                                <tr>
+                                    <td>{{ budget.id }}</td>
+                                    <td>{{ budget.title }}</td>
+                                    <td>{{ budget.solicitante.name }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ 'warning' if budget.status == 'pendente' else 'success' if budget.status == 'aprovado' else 'danger' }}">
+                                            {{ budget.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('view_budget', id=budget.id) }}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if current_user.role in ['aprovador', 'administrador'] and budget.status == 'pendente' %}
+                                        <button onclick="approveBudget({{ budget.id }})" class="btn btn-sm btn-success">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <button onclick="rejectBudget({{ budget.id }})" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function approveBudget(id) {
+    if (confirm('Deseja aprovar este orçamento?')) {
+        fetch(`/approve_budget/${id}`, { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Erro ao aprovar orçamento: ' + data.error);
+                }
+            });
+    }
+}
+
+function rejectBudget(id) {
+    if (confirm('Deseja rejeitar este orçamento?')) {
+        fetch(`/reject_budget/${id}`, { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Erro ao rejeitar orçamento: ' + data.error);
+                }
+            });
+    }
+}
+
+function toggleTheme() {
+    const body = document.body;
+    const icon = document.querySelector('.theme-toggle i');
+    
+    if (body.classList.contains('dark-theme')) {
+        body.classList.remove('dark-theme');
+        icon.classList.remove('fa-sun');
+        icon.classList.add('fa-moon');
+        localStorage.setItem('theme', 'light');
+    } else {
+        body.classList.add('dark-theme');
+        icon.classList.remove('fa-moon');
+        icon.classList.add('fa-sun');
+        localStorage.setItem('theme', 'dark');
+    }
+}
+
+// Aplicar tema salvo
+document.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-theme');
+        const icon = document.querySelector('.theme-toggle i');
+        icon.classList.remove('fa-moon');
+        icon.classList.add('fa-sun');
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm" style="max-width: 800px; margin: 0 auto;">
+        <div class="card-header bg-primary text-white py-2">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-file-invoice-dollar me-2"></i>Novo Orçamento</h5>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-sm btn-outline-light">
+                    <i class="fas fa-times me-1"></i>Cancelar
+                </a>
+            </div>
+        </div>
+        <div class="card-body p-4">
+            <form method="POST" enctype="multipart/form-data" id="budgetForm" class="needs-validation" novalidate>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="mb-3">
+                    <label for="title" class="form-label small">Título do Orçamento</label>
+                    <input type="text" class="form-control form-control-sm" id="title" name="title" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label small">Descrição</label>
+                    <textarea class="form-control form-control-sm" id="description" name="description" rows="3" required></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="requested_name" class="form-label small">Solicitado por</label>
+                    <input type="text" class="form-control form-control-sm" id="requested_name" name="requested_name" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="sector" class="form-label small">Setor solicitado</label>
+                    <div class="input-group input-group-sm">
+                        <select class="form-select form-select-sm" id="sector" name="sector" required>
+                            <option value="">Selecione...</option>
+                            {% for sector in sectors %}
+                            <option value="{{ sector.name }}">{{ sector.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#newSectorModal" title="Novo Setor">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label small mb-0">Empresas</label>
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="addCompany()">
+                            <i class="fas fa-plus me-1"></i>Adicionar
+                        </button>
+                    </div>
+                    <div id="companies-container">
+                        <!-- Container para empresas -->
+                    </div>
+                </div>
+
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary btn-sm px-4">
+                        <i class="fas fa-save me-1"></i>Salvar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Novo Setor -->
+<div class="modal fade" id="newSectorModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header py-2">
+                <h6 class="modal-title mb-0">Novo Setor</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="text" class="form-control form-control-sm" id="newSectorName" required>
+            </div>
+            <div class="modal-footer py-1">
+                <button type="button" class="btn btn-sm btn-primary" onclick="createNewSector()">Criar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+function addCompany() {
+    const container = document.getElementById('companies-container');
+    const companyDiv = document.createElement('div');
+    companyDiv.className = 'company-item card mb-2';
+    companyDiv.innerHTML = `
+        <div class="card-body p-2">
+            <div class="row g-2 align-items-center">
+                <div class="col">
+                    <input type="text" class="form-control form-control-sm" name="companies[][name]" placeholder="Nome da Empresa" required>
+                </div>
+                <div class="col-auto">
+                    <input type="file" class="form-control form-control-sm" name="companies[][attachment]" accept=".pdf">
+                </div>
+                <div class="col-auto">
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('.company-item').remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    container.appendChild(companyDiv);
+}
+
+function createNewSector() {
+    const sectorInput = document.getElementById('newSectorName');
+    const sectorName = sectorInput.value.trim();
+    
+    if (!sectorName) {
+        showToast('Erro', 'Nome do setor é obrigatório', 'error');
+        return;
+    }
+
+    fetch('/create_sector', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+        },
+        body: JSON.stringify({ name: sectorName })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const sectorSelect = document.getElementById('sector');
+            const option = new Option(sectorName, sectorName);
+            sectorSelect.add(option);
+            sectorSelect.value = sectorName;
+            
+            bootstrap.Modal.getInstance(document.getElementById('newSectorModal')).hide();
+            sectorInput.value = '';
+            showToast('Sucesso', 'Setor criado com sucesso', 'success');
+        } else {
+            showToast('Erro', data.error || 'Erro ao criar setor', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Erro', 'Erro ao criar setor', 'error');
+    });
+}
+
+function showToast(title, message, type) {
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0`;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-atomic', 'true');
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                <strong>${title}:</strong> ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        document.body.appendChild(container);
+    }
+    
+    container.appendChild(toast);
+    const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
+    bsToast.show();
+    toast.addEventListener('hidden.bs.toast', () => toast.remove());
+}
+
+// Validação do formulário
+(function() {
+    'use strict';
+    const forms = document.querySelectorAll('.needs-validation');
+    Array.from(forms).forEach(form => {
+        form.addEventListener('submit', event => {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+})();
+</script>
+
+<style>
+.card {
+    border: none;
+}
+
+.card-header {
+    border-bottom: none;
+}
+
+.form-control:focus, 
+.form-select:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.15);
+}
+
+.company-item {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+}
+
+.toast-container {
+    z-index: 1050;
+}
+
+.was-validated .form-control:invalid:focus,
+.was-validated .form-select:invalid:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.15rem rgba(220, 53, 69, 0.15);
+}
+
+.form-control-sm {
+    height: calc(1.5em + 0.5rem + 2px);
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+</style>
+{% endblock %}
+{% endblock %}

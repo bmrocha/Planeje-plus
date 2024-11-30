@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Cards de Estatísticas de Usuários -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card h-100" style="background-color: #ffc107;">
+                <div class="card-body text-white">
+                    <h6 class="card-title">Total de Usuários</h6>
+                    <h2 class="display-4">{{ total_users }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100" style="background-color: #198754;">
+                <div class="card-body text-white">
+                    <h6 class="card-title">Solicitantes</h6>
+                    <h2 class="display-4">{{ solicitantes }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100" style="background-color: #0dcaf0;">
+                <div class="card-body text-white">
+                    <h6 class="card-title">Aprovadores</h6>
+                    <h2 class="display-4">{{ aprovadores }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100" style="background-color: #dc3545;">
+                <div class="card-body text-white">
+                    <h6 class="card-title">Administradores</h6>
+                    <h2 class="display-4">{{ administradores }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabela de Usuários -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Usuários do Sistema</h5>
+            <a href="{{ url_for('register') }}" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus me-1"></i>Novo Usuário
+            </a>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Email</th>
+                            <th>Função</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.name }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>
+                                <span class="badge {% if user.role == 'solicitante' %}bg-primary{% elif user.role == 'aprovador' %}bg-success{% else %}bg-warning{% endif %}">
+                                    {{ user.role }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" 
+                                           {% if user.is_active %}checked{% endif %}
+                                           onchange="toggleUserStatus({{ user.id }})"
+                                           {% if user.id == current_user.id %}disabled{% endif %}>
+                                </div>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" onclick="editUser({{ user.id }})" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function editUser(id) {
+    window.location.href = `/edit_user/${id}`;
+}
+
+function toggleUserStatus(id) {
+    fetch(`/toggle_user_status/${id}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.success) {
+            alert('Erro ao alterar status do usuário: ' + data.error);
+            const checkbox = document.querySelector(`input[onchange="toggleUserStatus(${id})"]`);
+            checkbox.checked = !checkbox.checked;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Erro ao alterar status do usuário');
+        const checkbox = document.querySelector(`input[onchange="toggleUserStatus(${id})"]`);
+        checkbox.checked = !checkbox.checked;
+    });
+}
+</script>
+{% endblock %}
