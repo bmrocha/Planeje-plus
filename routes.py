@@ -81,30 +81,7 @@ def dashboard():
                              user_aprovado=total_aprovado,
                              user_rejeitado=total_rejeitado)
     elif current_user.role == 'administrador':
-        budgets = Budget.query.all()
-        users = User.query.all()
-        
-        # Get user statistics
-        total_users = len(users)
-        solicitantes = sum(1 for u in users if u.role == 'solicitante')
-        aprovadores = sum(1 for u in users if u.role == 'aprovador')
-        administradores = sum(1 for u in users if u.role == 'administrador')
-        
-        # Get budget statistics for the current user
-        user_pendente = sum(1 for b in budgets if b.solicitante_id == current_user.id and b.status == 'pendente')
-        user_aprovado = sum(1 for b in budgets if b.solicitante_id == current_user.id and b.status == 'aprovado')
-        user_rejeitado = sum(1 for b in budgets if b.solicitante_id == current_user.id and b.status == 'rejeitado')
-        
-        return render_template('admin_dashboard.html',
-                             budgets=budgets,
-                             users=users,
-                             total_users=total_users,
-                             solicitantes=solicitantes,
-                             aprovadores=aprovadores,
-                             administradores=administradores,
-                             user_pendente=user_pendente,
-                             user_aprovado=user_aprovado,
-                             user_rejeitado=user_rejeitado)
+        return redirect(url_for('admin_dashboard'))
     
     return render_template('dashboard.html', budgets=budgets)
 
