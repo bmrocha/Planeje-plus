@@ -3,95 +3,151 @@
 {% block content %}
 <div class="container mt-4">
     <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Detalhes do Orçamento</h5>
-            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-sm">
-                <i class="fas fa-arrow-left me-1"></i>Voltar
-            </a>
+        <div class="card-header d-flex justify-content-between align-items-center bg-light py-2">
+            <div class="d-flex align-items-center">
+                <img src="{{ url_for('static', filename='img/logo-planeje.png') }}" alt="Planeje+" style="height: 40px; margin-right: 15px;">
+                <div>
+                    <h5 class="mb-0">Detalhes do Orçamento</h5>
+                    <small class="text-muted">Orçamento #{{ budget.id }}</small>
+                </div>
+            </div>
+            <div>
+                <a href="{{ url_for('print_budget', id=budget.id) }}" class="btn btn-primary btn-sm me-2" target="_blank">
+                    <i class="fas fa-print me-1"></i>Imprimir
+                </a>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i>Voltar
+                </a>
+            </div>
         </div>
         <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label class="fw-bold">Título:</label>
-                        <p>{{ budget.title }}</p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="fw-bold">Solicitação por:</label>
-                        <p>{{ budget.solicitado }}</p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="fw-bold">Setor:</label>
-                        <p>{{ budget.sector }}</p>
-                    </div>
+            <!-- Informações Gerais -->
+            <div class="card mb-3">
+                <div class="card-header py-2">
+                    <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Informações Gerais</h6>
                 </div>
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label class="fw-bold">Data da Solicitação:</label>
-                        <p>{{ budget.request_date.strftime('%d/%m/%Y') }}</p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="fw-bold">Responsável pela Solicitação:</label>
-                        <p>{{ budget.solicitante.name }}</p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="fw-bold">Responsável pela Aprovação:</label>
-                        <p>{{ budget.aprovador.name }}</p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="fw-bold">Status:</label>
-                        <span class="badge {% if budget.status == 'pendente' %}bg-warning
-                                   {% elif budget.status == 'aprovado' %}bg-success
-                                   {% else %}bg-danger{% endif %}">
-                            {{ budget.status|title }}
-                        </span>
+                <div class="card-body">
+                    <div class="row row-cols-1 row-cols-md-3 g-3">
+                        <div class="col">
+                            <div class="border-start border-primary border-3 bg-light p-2 rounded">
+                                <small class="text-uppercase fw-bold d-block text-muted">Data da Solicitação</small>
+                                <span>{{ budget.request_date.strftime('%d/%m/%Y') }}</span>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="border-start border-primary border-3 bg-light p-2 rounded">
+                                <small class="text-uppercase fw-bold d-block text-muted">Solicitado por</small>
+                                <span>{{ budget.solicitado }}</span>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="border-start border-primary border-3 bg-light p-2 rounded">
+                                <small class="text-uppercase fw-bold d-block text-muted">Setor</small>
+                                <span>{{ budget.sector }}</span>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="border-start border-primary border-3 bg-light p-2 rounded">
+                                <small class="text-uppercase fw-bold d-block text-muted">Responsável</small>
+                                <span>{{ budget.solicitante.name }}</span>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="border-start border-primary border-3 bg-light p-2 rounded">
+                                <small class="text-uppercase fw-bold d-block text-muted">Status</small>
+                                <span class="badge {% if budget.status == 'pendente' %}bg-warning
+                                           {% elif budget.status == 'aprovado' %}bg-success
+                                           {% else %}bg-danger{% endif %}">
+                                    {{ budget.status|title }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="border-start border-primary border-3 bg-light p-2 rounded">
+                                <small class="text-uppercase fw-bold d-block text-muted">Aprovador</small>
+                                <span>{{ budget.aprovador.name }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="mb-3">
-                <label class="fw-bold">Descrição:</label>
-                <p>{{ budget.description }}</p>
-            </div>
-            <div class="mb-3">
-                <label class="fw-bold">Empresa:</label>
-                <p>{{ budget.company }}</p>
+            <!-- Detalhes da Solicitação -->
+            <div class="card mb-3">
+                <div class="card-header py-2">
+                    <h6 class="mb-0"><i class="fas fa-align-left me-2"></i>Detalhes da Solicitação</h6>
+                </div>
+                <div class="card-body">
+                    <div class="border-start border-primary border-3 bg-light p-2 rounded mb-3">
+                        <small class="text-uppercase fw-bold d-block text-muted">Título</small>
+                        <span>{{ budget.title }}</span>
+                    </div>
+                    <div class="border-start border-primary border-3 bg-light p-2 rounded">
+                        <small class="text-uppercase fw-bold d-block text-muted">Descrição</small>
+                        <span>{{ budget.description }}</span>
+                    </div>
+                </div>
             </div>
 
-            {% if budget.justification %}
-            <div class="mb-3">
-                <label class="fw-bold">Justificativa:</label>
-                <p>{{ budget.justification }}</p>
+            <!-- Empresa -->
+            {% if budget.companies %}
+            <div class="card mb-3">
+                <div class="card-header py-2">
+                    <h6 class="mb-0"><i class="fas fa-building me-2"></i>Empresa</h6>
+                </div>
+                <div class="card-body">
+                    <div class="border-start border-primary border-3 bg-light p-2 rounded">
+                        <span>{{ budget.companies[0].name }}</span>
+                    </div>
+                </div>
             </div>
             {% endif %}
-            <!-- Seção de PDFs Anexados -->
-            <div class="row mt-4">
-                <div class="col-12">
-                    <h6 class="mb-3">PDFs Anexados</h6>
-                    {% if budget.pdfs %}
+
+            <!-- PDFs Anexados -->
+            {% if budget.companies and budget.companies|selectattr('attachment_filename')|list|length > 0 %}
+            <div class="card mb-3">
+                <div class="card-header py-2">
+                    <h6 class="mb-0"><i class="fas fa-file-pdf me-2"></i>PDFs Anexados</h6>
+                </div>
+                <div class="card-body">
                     <div class="list-group">
-                        {% for pdf in budget.pdfs %}
-                        <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                            <div>
-                                <i class="fas fa-file-pdf text-danger me-2"></i>
-                                {{ pdf.filename }}
+                        {% for company in budget.companies %}
+                            {% if company.attachment_filename %}
+                            <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-file-pdf text-danger me-2"></i>
+                                    {{ company.attachment_filename }}
+                                </div>
+                                <a href="{{ url_for('download_attachment', company_id=company.id) }}" 
+                                   class="btn btn-sm btn-primary">
+                                    <i class="fas fa-download me-1"></i>Download
+                                </a>
                             </div>
-                            <a href="{{ url_for('download_pdf', budget_id=budget.id, pdf_id=pdf.id) }}" 
-                               class="btn btn-sm btn-primary">
-                                <i class="fas fa-download me-1"></i>Download
-                            </a>
-                        </div>
+                            {% endif %}
                         {% endfor %}
                     </div>
-                    {% else %}
-                    <p class="text-muted">Nenhum PDF anexado.</p>
-                    {% endif %}
                 </div>
             </div>
+            {% endif %}
 
+            <!-- Observações -->
+            {% if budget.observations %}
+            <div class="card mb-3">
+                <div class="card-header py-2">
+                    <h6 class="mb-0"><i class="fas fa-comment me-2"></i>Observações</h6>
+                </div>
+                <div class="card-body">
+                    <div class="border-start border-primary border-3 bg-light p-2 rounded">
+                        <span>{{ budget.observations }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Botões de Ação para Aprovador -->
             {% if current_user.role == 'aprovador' and budget.status == 'pendente' and budget.aprovador_id == current_user.id %}
-            <div class="mt-4">
-                <button class="btn btn-success me-2" onclick="showApprovalModal()">
+            <div class="d-flex justify-content-end gap-2">
+                <button class="btn btn-success" onclick="showApprovalModal()">
                     <i class="fas fa-check me-1"></i>Aprovar
                 </button>
                 <button class="btn btn-danger" onclick="showRejectionModal()">

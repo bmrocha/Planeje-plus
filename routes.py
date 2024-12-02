@@ -303,8 +303,12 @@ def reject_budget(id):
 @app.route('/download/<int:id>')
 @login_required
 def download_attachment(id):
-    attachment = Attachment.query.get_or_404(id)
-    budget = Budget.query.get(attachment.budget_id)
+    company = Company.query.get_or_404(id)
+    budget = Budget.query.get(company.budget_id)
+    
+    if not company.attachment_path:
+        flash('Nenhum arquivo anexado para esta empresa', 'warning')
+        return redirect(url_for('view_budget', id=budget.id))
     
     if current_user.role == 'aprovador' and budget.aprovador_id != current_user.id:
         flash('Você não tem permissão para baixar este arquivo', 'danger')
@@ -313,7 +317,13 @@ def download_attachment(id):
         flash('Você não tem permissão para baixar este arquivo', 'danger')
         return redirect(url_for('dashboard'))
     
-    return send_file(attachment.path, as_attachment=True)
+    try:
+        return send_file(company.attachment_path, 
+                        download_name=company.attachment_filename,
+                        as_attachment=True)
+    except Exception as e:
+        flash('Erro ao baixar arquivo: arquivo não encontrado', 'error')
+        return redirect(url_for('view_budget', id=budget.id))
 
 @app.route('/agency/new', methods=['POST'])
 @login_required
@@ -484,36 +494,63 @@ def get_budget(id):
         'approved_at': budget.approved_at.strftime('%d/%m/%Y %H:%M') if budget.approved_at else None
     })
 
-@app.route('/budget/<int:id>/edit', methods=['POST'])
+@app.route('/budget/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_budget(id):
-    if current_user.role != 'administrador':
-        return jsonify({'success': False, 'message': 'Acesso não autorizado'}), 403
-        
     budget = Budget.query.get_or_404(id)
-    data = request.get_json()
     
-    try:
-        budget.status = data['status']
-        budget.observations = data['observations']
-        if data['status'] == 'aprovado' and budget.status != 'aprovado':
-            budget.approved_at = datetime.utcnow()
-            budget.aprovador_id = current_user.id
-        db.session.commit()
-        
-        # Enviar email de notificação
-        subject = f'Atualização da Solicitação #{budget.id}'
-        recipient = budget.solicitante.email
-        body = f'''Sua solicitação #{budget.id} foi atualizada.
-        Status: {budget.status}
-        Observações: {budget.observations or 'Nenhuma'}
-        '''
-        send_notification_email(subject, recipient, body)
-        
-        return jsonify({'success': True})
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'success': False, 'message': str(e)})
+    # Verificar permissões
+    if current_user.role != 'solicitante' or budget.solicitante_id != current_user.id or budget.status != 'pendente':
+        flash('Você não tem permissão para editar este orçamento.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    if request.method == 'POST':
+        try:
+            # Atualizar dados básicos do orçamento
+            budget.title = request.form['title']
+            budget.description = request.form['description']
+            budget.solicitado = request.form['solicitado']
+            budget.sector = request.form['sector']
+            budget.aprovador_id = request.form['aprovador_id']
+            
+            # Processar empresas existentes e novas
+            company_names = request.form.getlist('companies[][name]')
+            company_files = request.files.getlist('companies[][attachment]')
+            
+            # Limpar empresas antigas
+            for company in budget.companies:
+                db.session.delete(company)
+            
+            # Adicionar novas empresas
+            for name, file in zip(company_names, company_files):
+                if name:
+                    company = Company(name=name)
+                    if file and file.filename:
+                        filename = secure_filename(file.filename)
+                        unique_filename = f"{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_{filename}"
+                        filepath = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                        file.save(filepath)
+                        company.attachment_filename = filename
+                        company.attachment_path = filepath
+                    budget.companies.append(company)
+            
+            db.session.commit()
+            flash('Orçamento atualizado com sucesso!', 'success')
+            return redirect(url_for('dashboard'))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Erro ao atualizar orçamento: {str(e)}', 'error')
+            return redirect(url_for('edit_budget', id=id))
+    
+    # GET request - renderizar formulário de edição
+    sectors = Sector.query.order_by(Sector.name).all()
+    aprovadores = User.query.filter_by(role='aprovador', is_active=True).order_by(User.name).all()
+    
+    return render_template('edit_budget.html',
+                         budget=budget,
+                         sectors=sectors,
+                         aprovadores=aprovadores)
 
 @app.route('/budget/<int:id>/inactivate', methods=['POST'])
 @login_required
@@ -540,6 +577,23 @@ def inactivate_budget(id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/budget/<int:id>/print')
+@login_required
+def print_budget(id):
+    budget = Budget.query.get_or_404(id)
+    
+    # Verificar permissões
+    if current_user.role == 'aprovador' and budget.aprovador_id != current_user.id:
+        flash('Você só pode visualizar orçamentos designados a você', 'danger')
+        return redirect(url_for('dashboard'))
+    if current_user.role == 'solicitante' and budget.solicitante_id != current_user.id:
+        flash('Você só pode visualizar seus próprios orçamentos', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    return render_template('print_budget.html', 
+                         budget=budget,
+                         datetime=datetime)
 
 @app.route('/reset_password_request', methods=['GET', 'POST'])
 def reset_password_request():
