@@ -1,131 +1,122 @@
 {% extends "base.html" %}
 
-{% block content %}
-<div class="container py-4">
-    {% if current_user.role in ['solicitante', 'aprovador'] %}
-    <!-- Estatísticas de Orçamentos -->
-    <div class="row g-4 mb-4">
-        <div class="col-md-4">
-            <div class="card h-100" style="background-color: #ffc107;">
-                <div class="card-body text-white">
-                    <h6 class="card-title">Orçamentos Pendentes</h6>
-                    <h2 class="display-4">{{ user_pendente }}</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card h-100" style="background-color: #198754;">
-                <div class="card-body text-white">
-                    <h6 class="card-title">Orçamentos Aprovados</h6>
-                    <h2 class="display-4">{{ user_aprovado }}</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card h-100" style="background-color: #dc3545;">
-                <div class="card-body text-white">
-                    <h6 class="card-title">Orçamentos Rejeitados</h6>
-                    <h2 class="display-4">{{ user_rejeitado }}</h2>
-                </div>
-            </div>
-        </div>
-    </div>
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
 
-    <!-- Tabela de Orçamentos -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Orçamentos Recentes</h5>
-                    {% if current_user.role == 'solicitante' %}
-                    <a href="{{ url_for('new_budget') }}" class="btn btn-primary">
-                        <i class="fas fa-plus me-2"></i>Novo Orçamento
-                    </a>
-                    {% endif %}
+{% block content %}
+<div class="dashboard-wrapper">
+    <div class="container-fluid main-container">
+        {% if current_user.role in ['solicitante', 'aprovador'] %}
+        <div class="row g-4 section-gap">
+            <div class="col-md-4">
+                <div class="card status-card pending">
+                    <div class="card-body">
+                        <h6 class="card-title">Orçamentos Pendentes</h6>
+                        <h2 class="display-4">{{ user_pendente }}</h2>
+                    </div>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Título</th>
-                                    <th>Solicitado</th>
-                                    <th>Setor</th>
-                                    <th>Status</th>
-                                    <th>Data</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for budget in budgets %}
-                                <tr>
-                                    <td>{{ budget.id }}</td>
-                                    <td>{{ budget.title }}</td>
-                                    <td>{{ budget.requested_name }}</td>
-                                    <td>{{ budget.sector }}</td>
-                                    <td>
-                                        <span class="badge bg-{{ 'warning' if budget.status == 'pendente' else 'success' if budget.status == 'aprovado' else 'danger' }}">
-                                            {{ budget.status }}
-                                        </span>
-                                    </td>
-                                    <td>{{ budget.request_date.strftime('%d/%m/%Y') }}</td>
-                                    <td>
-                                        <div class="btn-group">
-                                            <a href="{{ url_for('view_budget', id=budget.id) }}" class="btn btn-sm btn-info">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            {% if current_user.role == 'aprovador' and budget.status == 'pendente' %}
-                                            <button onclick="approveBudget({{ budget.id }})" class="btn btn-sm btn-success">
-                                                <i class="fas fa-check"></i>
-                                            </button>
-                                            <button onclick="rejectBudget({{ budget.id }})" class="btn btn-sm btn-danger">
-                                                <i class="fas fa-times"></i>
-                                            </button>
-                                            {% endif %}
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+            </div>
+            <div class="col-md-4">
+                <div class="card status-card approved">
+                    <div class="card-body">
+                        <h6 class="card-title">Orçamentos Aprovados</h6>
+                        <h2 class="display-4">{{ user_aprovado }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card status-card warning">
+                    <div class="card-body">
+                        <h6 class="card-title">Orçamentos Rejeitados</h6>
+                        <h2 class="display-4">{{ user_rejeitado }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Orçamentos</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center">ID</th>
+                                        <th>Título</th>
+                                        <th>Solicitado Por</th>
+                                        <th>Setor</th>
+                                        <th>Aprovador</th>
+                                        <th>Data</th>
+                                        <th class="text-center">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for budget in budgets %}
+                                    <tr>
+                                        <td class="text-center">{{ budget.id }}</td>
+                                        <td>{{ budget.title }}</td>
+                                        <td>{{ budget.solicitado }}</td>
+                                        <td>{{ budget.sector }}</td>
+                                        <td>{{ budget.aprovador.name }}</td>
+                                        <td>{{ budget.request_date.strftime('%d/%m/%Y') }}</td>
+                                        <td class="text-center">
+                                            <div class="action-buttons">
+                                                <a href="{{ url_for('view_budget', id=budget.id) }}" 
+                                                   class="btn action-button view" 
+                                                   title="Visualizar">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                {% if current_user.role == 'solicitante' and budget.status == 'pendente' %}
+                                                <a href="{{ url_for('edit_budget', id=budget.id) }}" 
+                                                   class="btn action-button edit" 
+                                                   title="Editar">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <button onclick="deleteBudget({{ budget.id }})" 
+                                                        class="btn action-button delete" 
+                                                        title="Deletar">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    {% endif %}
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-function approveBudget(id) {
-    if (confirm('Tem certeza que deseja aprovar este orçamento?')) {
-        fetch(`/approve_budget/${id}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
+function deleteBudget(id) {
+    if (confirm('Tem certeza que deseja excluir este orçamento?')) {
+        fetch(`/delete_budget/${id}`, {
+            method: 'DELETE',
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert('Erro ao excluir orçamento');
             }
-        }).then(response => {
-            if (response.ok) {
-                location.reload();
-            }
-        });
-    }
-}
-
-function rejectBudget(id) {
-    if (confirm('Tem certeza que deseja rejeitar este orçamento?')) {
-        fetch(`/reject_budget/${id}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        }).then(response => {
-            if (response.ok) {
-                location.reload();
-            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Erro ao excluir orçamento');
         });
     }
 }

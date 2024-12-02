@@ -1,9 +1,11 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from urllib.parse import urlparse
+import os
 from datetime import datetime
-from models import db, User, Budget, EmailConfig, Sector
+from models import db, User, Budget, EmailConfig, Sector, Company
 from forms import LoginForm, RegistrationForm, ResetPasswordRequestForm, ResetPasswordForm
 from flask_mail import Message
 from extensions import mail
@@ -58,85 +60,101 @@ def login():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    budgets = []
-    # Get budget statistics for the current user
     if current_user.role == 'solicitante':
-        budgets = Budget.query.filter_by(solicitante_id=current_user.id).all()
+        # Buscar todos os orçamentos do solicitante
+        budgets = Budget.query.filter_by(solicitante_id=current_user.id).order_by(Budget.request_date.desc()).all()
+        
+        # Calcular estatísticas
         user_pendente = sum(1 for b in budgets if b.status == 'pendente')
         user_aprovado = sum(1 for b in budgets if b.status == 'aprovado')
         user_rejeitado = sum(1 for b in budgets if b.status == 'rejeitado')
+        
         return render_template('dashboard.html', 
                              budgets=budgets,
                              user_pendente=user_pendente,
                              user_aprovado=user_aprovado,
                              user_rejeitado=user_rejeitado)
+    
     elif current_user.role == 'aprovador':
-        budgets = Budget.query.filter_by(aprovador_id=current_user.id, status='pendente').all()
-        total_pendente = Budget.query.filter_by(aprovador_id=current_user.id, status='pendente').count()
-        total_aprovado = Budget.query.filter_by(aprovador_id=current_user.id, status='aprovado').count()
-        total_rejeitado = Budget.query.filter_by(aprovador_id=current_user.id, status='rejeitado').count()
+        # Buscar orçamentos para o aprovador
+        budgets = Budget.query.filter_by(aprovador_id=current_user.id).order_by(Budget.request_date.desc()).all()
+        
+        # Calcular estatísticas
+        total_pendente = sum(1 for b in budgets if b.status == 'pendente')
+        total_aprovado = sum(1 for b in budgets if b.status == 'aprovado')
+        total_rejeitado = sum(1 for b in budgets if b.status == 'rejeitado')
+        
         return render_template('dashboard.html', 
                              budgets=budgets,
                              user_pendente=total_pendente,
                              user_aprovado=total_aprovado,
                              user_rejeitado=total_rejeitado)
+    
     elif current_user.role == 'administrador':
         return redirect(url_for('admin_dashboard'))
     
-    return render_template('dashboard.html', budgets=budgets)
+    return render_template('dashboard.html', budgets=[])
 
 @app.route('/new_budget', methods=['GET', 'POST'])
 @login_required
 def new_budget():
     if request.method == 'POST':
         try:
-            # Obter dados básicos do orçamento
-            title = request.form['title']
-            description = request.form['description']
-            requested_name = request.form['requested_name']
-            sector = request.form['sector']
-
-            # Criar o orçamento
+            # Criar novo orçamento com os dados do formulário
             budget = Budget(
-                title=title,
-                description=description,
-                requested_name=requested_name,
-                sector=sector,
+                title=request.form['title'],
+                description=request.form['description'],
+                solicitado=request.form['solicitado'],
+                requested_name=current_user.name,
+                sector=request.form['sector'],
                 solicitante_id=current_user.id,
-                aprovador_id=1  # ID do aprovador padrão
+                aprovador_id=request.form['aprovador_id'],
+                status='pendente',
+                request_date=datetime.utcnow()
             )
-            db.session.add(budget)
-            db.session.flush()  # Para obter o ID do orçamento
-
-            # Processar empresas e anexos
+            
+            # Processar as empresas
             company_names = request.form.getlist('companies[][name]')
             company_files = request.files.getlist('companies[][attachment]')
-
-            for i, (name, file) in enumerate(zip(company_names, company_files)):
-                if name:
-                    company = Company(name=name, budget_id=budget.id)
-                    
-                    if file and file.filename:
-                        filename = secure_filename(f"budget_{budget.id}_company_{i}_{file.filename}")
-                        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            
+            # Garantir que o diretório de upload existe
+            if not os.path.exists(app.config['UPLOAD_FOLDER']):
+                os.makedirs(app.config['UPLOAD_FOLDER'])
+            
+            for name, file in zip(company_names, company_files):
+                if name:  # Se tem nome de empresa
+                    company = Company(name=name)
+                    if file and file.filename:  # Se tem arquivo
+                        # Gerar nome único para o arquivo
+                        filename = secure_filename(file.filename)
+                        unique_filename = f"{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_{filename}"
+                        filepath = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                        
+                        # Salvar arquivo
                         file.save(filepath)
                         company.attachment_filename = filename
                         company.attachment_path = filepath
-
-                    db.session.add(company)
-
+                    budget.companies.append(company)
+            
+            # Salvar no banco de dados
+            db.session.add(budget)
             db.session.commit()
-            flash('Solicitação criada com sucesso!', 'success')
+            
+            flash('Orçamento criado com sucesso!', 'success')
             return redirect(url_for('dashboard'))
-
+            
         except Exception as e:
             db.session.rollback()
-            flash(f'Erro ao criar solicitação: {str(e)}', 'error')
+            flash(f'Erro ao criar orçamento: {str(e)}', 'error')
             return redirect(url_for('new_budget'))
-
-    # GET request
+    
+    # GET request - renderizar formulário
     sectors = Sector.query.order_by(Sector.name).all()
-    return render_template('new_budget.html', sectors=sectors)
+    aprovadores = User.query.filter_by(role='aprovador', is_active=True).order_by(User.name).all()
+    
+    return render_template('new_budget.html', 
+                         sectors=sectors, 
+                         aprovadores=aprovadores)
 
 @app.route('/create_sector', methods=['POST'])
 @login_required

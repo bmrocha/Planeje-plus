@@ -1,5 +1,5 @@
 import os
-from app import db, User, app, Budget, Agency, EmailConfig
+from app import db, User, app, Budget, Sector, EmailConfig
 from werkzeug.security import generate_password_hash
 from datetime import datetime
 

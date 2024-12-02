@@ -1,87 +1,105 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Detalhes do Orçamento</h5>
-        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-sm">
-            <i class="fas fa-arrow-left me-1"></i>Voltar
-        </a>
-    </div>
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <label class="fw-bold">Título:</label>
-                    <p>{{ budget.title }}</p>
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Detalhes do Orçamento</h5>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-sm">
+                <i class="fas fa-arrow-left me-1"></i>Voltar
+            </a>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="fw-bold">Título:</label>
+                        <p>{{ budget.title }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="fw-bold">Solicitação por:</label>
+                        <p>{{ budget.solicitado }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="fw-bold">Setor:</label>
+                        <p>{{ budget.sector }}</p>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label class="fw-bold">Responsável pela Solicitação:</label>
-                    <p>{{ budget.solicitante.name }}</p>
-                </div>
-                <div class="mb-3">
-                    <label class="fw-bold">Agência:</label>
-                    <p>{{ budget.agency }}</p>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <label class="fw-bold">Data da Solicitação:</label>
-                    <p>{{ budget.request_date.strftime('%d/%m/%Y') }}</p>
-                </div>
-                <div class="mb-3">
-                    <label class="fw-bold">Responsável pela Aprovação:</label>
-                    <p>{{ budget.aprovador.name }}</p>
-                </div>
-                <div class="mb-3">
-                    <label class="fw-bold">Status:</label>
-                    <span class="badge {% if budget.status == 'pendente' %}bg-warning
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="fw-bold">Data da Solicitação:</label>
+                        <p>{{ budget.request_date.strftime('%d/%m/%Y') }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="fw-bold">Responsável pela Solicitação:</label>
+                        <p>{{ budget.solicitante.name }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="fw-bold">Responsável pela Aprovação:</label>
+                        <p>{{ budget.aprovador.name }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="fw-bold">Status:</label>
+                        <span class="badge {% if budget.status == 'pendente' %}bg-warning
                                    {% elif budget.status == 'aprovado' %}bg-success
                                    {% else %}bg-danger{% endif %}">
-                        {{ budget.status|title }}
-                    </span>
+                            {{ budget.status|title }}
+                        </span>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="mb-3">
-            <label class="fw-bold">Descrição:</label>
-            <p>{{ budget.description }}</p>
-        </div>
+            <div class="mb-3">
+                <label class="fw-bold">Descrição:</label>
+                <p>{{ budget.description }}</p>
+            </div>
+            <div class="mb-3">
+                <label class="fw-bold">Empresa:</label>
+                <p>{{ budget.company }}</p>
+            </div>
 
-        {% if budget.justification %}
-        <div class="mb-3">
-            <label class="fw-bold">Justificativa:</label>
-            <p>{{ budget.justification }}</p>
-        </div>
-        {% endif %}
+            {% if budget.justification %}
+            <div class="mb-3">
+                <label class="fw-bold">Justificativa:</label>
+                <p>{{ budget.justification }}</p>
+            </div>
+            {% endif %}
+            <!-- Seção de PDFs Anexados -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <h6 class="mb-3">PDFs Anexados</h6>
+                    {% if budget.pdfs %}
+                    <div class="list-group">
+                        {% for pdf in budget.pdfs %}
+                        <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-file-pdf text-danger me-2"></i>
+                                {{ pdf.filename }}
+                            </div>
+                            <a href="{{ url_for('download_pdf', budget_id=budget.id, pdf_id=pdf.id) }}" 
+                               class="btn btn-sm btn-primary">
+                                <i class="fas fa-download me-1"></i>Download
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted">Nenhum PDF anexado.</p>
+                    {% endif %}
+                </div>
+            </div>
 
-        {% if budget.attachments %}
-        <div class="mb-3">
-            <label class="fw-bold">Anexos:</label>
-            <ul class="list-group">
-                {% for attachment in budget.attachments %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <span>{{ attachment.filename }}</span>
-                    <a href="{{ url_for('download_attachment', id=attachment.id) }}" class="btn btn-sm btn-primary">
-                        <i class="fas fa-download me-1"></i>Baixar
-                    </a>
-                </li>
-                {% endfor %}
-            </ul>
+            {% if current_user.role == 'aprovador' and budget.status == 'pendente' and budget.aprovador_id == current_user.id %}
+            <div class="mt-4">
+                <button class="btn btn-success me-2" onclick="showApprovalModal()">
+                    <i class="fas fa-check me-1"></i>Aprovar
+                </button>
+                <button class="btn btn-danger" onclick="showRejectionModal()">
+                    <i class="fas fa-times me-1"></i>Rejeitar
+                </button>
+            </div>
+            {% endif %}
         </div>
-        {% endif %}
-
-        {% if current_user.role == 'aprovador' and budget.status == 'pendente' and budget.aprovador_id == current_user.id %}
-        <div class="mt-4">
-            <button class="btn btn-success me-2" onclick="showApprovalModal()">
-                <i class="fas fa-check me-1"></i>Aprovar
-            </button>
-            <button class="btn btn-danger" onclick="showRejectionModal()">
-                <i class="fas fa-times me-1"></i>Rejeitar
-            </button>
-        </div>
-        {% endif %}
     </div>
 </div>
 

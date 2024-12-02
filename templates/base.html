@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-bs-theme="light">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +8,7 @@
     <!-- CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/base.css') }}" rel="stylesheet">
     
     <style>
         :root {
@@ -292,27 +293,15 @@
 <body>
     <!-- Toast Container -->
     <div class="toast-container position-fixed top-0 end-0 p-3">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="toast align-items-center text-white bg-{{ category }} border-0" role="alert" aria-live="assertive" aria-atomic="true">
-                        <div class="d-flex">
-                            <div class="toast-body">{{ message }}</div>
-                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-                        </div>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
     </div>
 
     <div class="content-wrapper">
         <!-- Navbar -->
         {% if not request.endpoint == 'login' and not request.endpoint == 'reset_password_request' and not request.endpoint == 'reset_password' %}
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <div class="container">
+        <nav class="navbar navbar-expand-lg">
+            <div class="container-fluid">
                 <a class="navbar-brand" href="{{ url_for('dashboard') }}">
-                    <img src="{{ url_for('static', filename='img/logo-planeje.png') }}" alt="Logo" height="40">
+                    <img src="{{ url_for('static', filename='img/logo-planeje.png') }}" alt="Logo Planeje+" height="40">
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span class="navbar-toggler-icon"></span>
@@ -321,19 +310,21 @@
                     {% if current_user.is_authenticated %}
                     <ul class="navbar-nav me-auto">
                         <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">Dashboard</a>
+                            <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">
+                                <i class="fas fa-home me-1"></i>Dashboard
+                            </a>
                         </li>
-                        {% if current_user.role != 'administrador' %}
-                        <li class="nav-item">
+                        {% if current_user.role == 'solicitante' %}
+                        <li class="nav-item d-none d-lg-block">
                             <a class="nav-link {% if request.endpoint == 'new_budget' %}active{% endif %}" href="{{ url_for('new_budget') }}">
-                                <i class="fas fa-plus-circle me-1"></i>Novo Orçamento
+                                <i class="fas fa-plus me-1"></i>Novo Orçamento
                             </a>
                         </li>
                         {% endif %}
                         {% if current_user.role == 'administrador' %}
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'register' %}active{% endif %}" href="{{ url_for('register') }}">
-                                <i class="fas fa-user-plus me-1"></i>Cadastrar Usuário
+                                <i class="fas fa-user-plus me-1"></i>Cadastrar Usuários
                             </a>
                         </li>
                         <li class="nav-item">
@@ -343,20 +334,25 @@
                         </li>
                         {% endif %}
                     </ul>
-                    <div class="d-flex align-items-center">
-                        <div class="theme-toggle position-relative me-3" onclick="toggleTheme()" data-tooltip="Alternar tema claro/escuro">
-                            <i class="fas fa-moon"></i>
-                        </div>
-                        <div class="dropdown">
-                            <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-user me-2"></i>{{ current_user.name }}
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="{{ url_for('profile') }}">Perfil</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ url_for('logout') }}">Sair</a></li>
-                            </ul>
-                        </div>
+                    <div class="header-user-menu">
+                        <ul class="navbar-nav">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle user-menu" href="#" 
+                                   id="userDropdown" role="button" 
+                                   data-bs-toggle="dropdown">
+                                    <i class="fas fa-user-circle"></i>
+                                    <span>{{ current_user.name }}</span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for('logout') }}">
+                                            <i class="fas fa-sign-out-alt"></i>
+                                            <span>Sair</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
                     </div>
                     {% endif %}
                 </div>
@@ -370,87 +366,41 @@
 
     <!-- JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
     <script>
         function showToast(message, category) {
             const toastContainer = document.querySelector('.toast-container');
-            const toastHtml = `
-                <div class="toast align-items-center text-white bg-${category} border-0" role="alert" aria-live="assertive" aria-atomic="true">
-                    <div class="d-flex">
-                        <div class="toast-body">${message}</div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-                    </div>
+            if (!toastContainer) return;
+
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${category} border-0`;
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
                 </div>
             `;
-            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
-            const toast = toastContainer.lastElementChild;
+
+            toastContainer.appendChild(toast);
             const bsToast = new bootstrap.Toast(toast);
             bsToast.show();
-            
+
             toast.addEventListener('hidden.bs.toast', () => {
                 toast.remove();
             });
         }
 
-        function toggleTheme() {
-            const body = document.body;
-            const themeToggle = document.querySelector('.theme-toggle');
-            const icon = themeToggle.querySelector('i');
-            const navbar = document.querySelector('.navbar');
-            
-            if (body.classList.contains('dark-theme')) {
-                body.classList.remove('dark-theme');
-                icon.classList.remove('fa-sun');
-                icon.classList.add('fa-moon');
-                navbar.classList.remove('navbar-dark');
-                navbar.classList.add('navbar-light');
-                localStorage.setItem('theme', 'light');
-                themeToggle.setAttribute('data-tooltip', 'Ativar tema escuro');
-            } else {
-                body.classList.add('dark-theme');
-                icon.classList.remove('fa-moon');
-                icon.classList.add('fa-sun');
-                navbar.classList.remove('navbar-light');
-                navbar.classList.add('navbar-dark');
-                localStorage.setItem('theme', 'dark');
-                themeToggle.setAttribute('data-tooltip', 'Ativar tema claro');
-            }
-        }
-
-        // Aplicar tema salvo
-        document.addEventListener('DOMContentLoaded', () => {
-            const savedTheme = localStorage.getItem('theme');
-            const body = document.body;
-            const themeToggle = document.querySelector('.theme-toggle');
-            const icon = themeToggle.querySelector('i');
-            const navbar = document.querySelector('.navbar');
-
-            if (savedTheme === 'dark') {
-                body.classList.add('dark-theme');
-                icon.classList.remove('fa-moon');
-                icon.classList.add('fa-sun');
-                navbar.classList.remove('navbar-light');
-                navbar.classList.add('navbar-dark');
-                themeToggle.setAttribute('data-tooltip', 'Ativar tema claro');
-            } else {
-                themeToggle.setAttribute('data-tooltip', 'Ativar tema escuro');
-            }
-
-            // Detectar preferência do sistema
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
-            prefersDark.addEventListener('change', (e) => {
-                if (!localStorage.getItem('theme')) {
-                    if (e.matches) {
-                        body.classList.add('dark-theme');
-                        icon.classList.remove('fa-moon');
-                        icon.classList.add('fa-sun');
-                    } else {
-                        body.classList.remove('dark-theme');
-                        icon.classList.remove('fa-sun');
-                        icon.classList.add('fa-moon');
-                    }
-                }
-            });
-        });
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    showToast('{{ message }}', '{{ category }}');
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
     </script>
     {% block scripts %}{% endblock %}
 </body>

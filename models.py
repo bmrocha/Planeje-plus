@@ -24,7 +24,8 @@ class Budget(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=False)
-    requested_name = db.Column(db.String(100), nullable=False)  # Nome do Solicitado
+    requested_name = db.Column(db.String(100), nullable=False)  # Nome do Cadastrador
+    solicitado = db.Column(db.String(100), nullable=False)  # Nome do Solicitante
     sector = db.Column(db.String(100), nullable=False)  # Setor (antigo agency)
     status = db.Column(db.String(20), default='pendente')
     request_date = db.Column(db.DateTime, default=datetime.utcnow)
