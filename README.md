@@ -1,4 +1,4 @@
-# Planeje+ Budget Management Dashboard
+# Planeje+ Management Dashboard
 
 Um sistema web moderno para gerenciamento de orçamento pessoal e empresarial.
 
