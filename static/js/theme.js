@@ -1,36 +1,15 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const themeToggle = document.getElementById('themeToggle');
-    const themeIcon = themeToggle.querySelector('i');
-    const themeText = themeToggle.querySelector('span');
-    
-    function toggleTheme() {
-        const html = document.documentElement;
-        const currentTheme = html.getAttribute('data-bs-theme');
-        
-        if (currentTheme === 'dark') {
-            html.setAttribute('data-bs-theme', 'light');
-            themeIcon.classList.remove('fa-sun');
-            themeIcon.classList.add('fa-moon');
-            themeText.textContent = 'Tema Escuro';
-            localStorage.setItem('theme', 'light');
-        } else {
-            html.setAttribute('data-bs-theme', 'dark');
-            themeIcon.classList.remove('fa-moon');
-            themeIcon.classList.add('fa-sun');
-            themeText.textContent = 'Tema Claro';
-            localStorage.setItem('theme', 'dark');
-        }
-    }
-
-    // Verificar tema salvo
-    const savedTheme = localStorage.getItem('theme') || 'light';
+function toggleTheme() {
     const html = document.documentElement;
+    const currentTheme = html.getAttribute('data-bs-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    const themeIcon = document.getElementById('themeIcon');
+    const themeText = document.getElementById('themeText');
     
-    // Aplicar tema salvo
-    html.setAttribute('data-bs-theme', savedTheme);
-    
-    // Atualizar ícone
-    if (savedTheme === 'dark') {
+    html.setAttribute('data-bs-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+
+    // Atualizar ícone e texto
+    if (newTheme === 'dark') {
         themeIcon.classList.remove('fa-moon');
         themeIcon.classList.add('fa-sun');
         themeText.textContent = 'Tema Claro';
@@ -40,6 +19,30 @@ document.addEventListener('DOMContentLoaded', () => {
         themeText.textContent = 'Tema Escuro';
     }
 
-    // Alternar tema
-    themeToggle.addEventListener('click', toggleTheme);
+    // Adicionar animação
+    themeIcon.style.transform = 'rotate(360deg)';
+    setTimeout(() => {
+        themeIcon.style.transform = 'none';
+    }, 300);
+}
+
+// Inicializar tema
+document.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    const html = document.documentElement;
+    const themeIcon = document.getElementById('themeIcon');
+    const themeText = document.getElementById('themeText');
+
+    html.setAttribute('data-bs-theme', savedTheme);
+
+    // Configurar ícone inicial
+    if (savedTheme === 'dark') {
+        themeIcon.classList.remove('fa-moon');
+        themeIcon.classList.add('fa-sun');
+        themeText.textContent = 'Tema Claro';
+    } else {
+        themeIcon.classList.remove('fa-sun');
+        themeIcon.classList.add('fa-moon');
+        themeText.textContent = 'Tema Escuro';
+    }
 });

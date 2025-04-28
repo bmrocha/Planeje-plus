@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="mb-0">Criar Novo Orçamento</h2>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('budget.create_budget') }}" enctype="multipart/form-data" id="budgetForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <!-- Informações Básicas -->
+                <div class="mb-4">
+                    <h4>Informações Básicas</h4>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="title" class="form-label">Título*</label>
+                            <input type="text" class="form-control" id="title" name="title" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="solicitado" class="form-label">Nome do Solicitante*</label>
+                            <input type="text" class="form-control" id="solicitado" name="solicitado" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="sector" class="form-label">Setor*</label>
+                            <select class="form-select" id="sector" name="sector" required>
+                                <option value="">Selecione um setor</option>
+                                {% for sector in sectors %}
+                                <option value="{{ sector.name }}">{{ sector.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="mt-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#newSectorModal">
+                                    <i class="fas fa-plus"></i> Novo Setor
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="aprovador_id" class="form-label">Aprovador*</label>
+                            <select class="form-select" id="aprovador_id" name="aprovador_id" required>
+                                <option value="">Selecione um aprovador</option>
+                                {% for aprovador in aprovadores %}
+                                <option value="{{ aprovador.id }}">{{ aprovador.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Descrição*</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+                    </div>
+                </div>
+
+                <!-- Empresas -->
+                <div class="mb-4">
+                    <h4>Empresas</h4>
+                    <div id="companies-container">
+                        <div class="company-entry border rounded p-3 mb-3">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label required">Nome da Empresa</label>
+                                    <input type="text" 
+                                           class="form-control" 
+                                           name="company_name[]" 
+                                           required
+                                           placeholder="Nome da empresa">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label required">Valor (R$)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">R$</span>
+                                        <input type="text" 
+                                               class="form-control money" 
+                                               name="company_value[]" 
+                                               required
+                                               placeholder="0,00">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Anexo</label>
+                                    <div class="input-group">
+                                        <input type="file" 
+                                               class="form-control" 
+                                               name="company_attachment[]"
+                                               accept=".pdf,.doc,.docx,.xls,.xlsx">
+                                        <button type="button" 
+                                                class="btn btn-outline-danger remove-company"
+                                                title="Remover empresa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-outline-primary" id="add-company">
+                        <i class="fas fa-plus"></i> Adicionar Empresa
+                    </button>
+                </div>
+
+                <div class="text-end">
+                    <a href="{{ url_for('budget.dashboard') }}" class="btn btn-secondary me-2">Cancelar</a>
+                    <button type="submit" class="btn btn-primary">Criar Orçamento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Novo Setor -->
+<div class="modal fade" id="newSectorModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Novo Setor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="newSectorName" class="form-label">Nome do Setor</label>
+                    <input type="text" class="form-control" id="newSectorName">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="saveSectorBtn">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Adicionar nova empresa
+    document.getElementById('add-company').addEventListener('click', function() {
+        const container = document.getElementById('companies-container');
+        const template = `
+            <div class="company-entry border rounded p-3 mb-3">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label required">Nome da Empresa</label>
+                        <input type="text" 
+                               class="form-control" 
+                               name="company_name[]" 
+                               required
+                               placeholder="Nome da empresa">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label required">Valor (R$)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">R$</span>
+                            <input type="text" 
+                                   class="form-control money" 
+                                   name="company_value[]" 
+                                   required
+                                   placeholder="0,00">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Anexo</label>
+                        <div class="input-group">
+                            <input type="file" 
+                                   class="form-control" 
+                                   name="company_attachment[]"
+                                   accept=".pdf,.doc,.docx,.xls,.xlsx">
+                            <button type="button" 
+                                    class="btn btn-outline-danger remove-company"
+                                    title="Remover empresa">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', template);
+        initializeMoneyMasks();
+    });
+
+    // Remover empresa
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-company') || e.target.closest('.remove-company')) {
+            const entry = e.target.closest('.company-entry');
+            entry.remove();
+        }
+    });
+
+    // Inicializar máscaras monetárias
+    function initializeMoneyMasks() {
+        const moneyInputs = document.querySelectorAll('.money');
+        moneyInputs.forEach(input => {
+            IMask(input, {
+                mask: 'R$ num',
+                blocks: {
+                    num: {
+                        mask: Number,
+                        thousandsSeparator: '.',
+                        radix: ',',
+                        scale: 2,
+                        padFractionalZeros: true,
+                        normalizeZeros: true,
+                        min: 0
+                    }
+                }
+            });
+        });
+    }
+
+    // Inicializar máscaras na carga da página
+    initializeMoneyMasks();
+
+    // Salvar novo setor
+    document.getElementById('saveSectorBtn').addEventListener('click', function() {
+        const sectorName = document.getElementById('newSectorName').value.trim();
+        if (!sectorName) {
+            alert('Por favor, insira um nome para o setor.');
+            return;
+        }
+
+        fetch('/create_sector', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+            },
+            body: JSON.stringify({ name: sectorName })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Adicionar novo setor ao select
+                const sectorSelect = document.getElementById('sector');
+                const option = new Option(data.sector.name, data.sector.name);
+                sectorSelect.add(option);
+                sectorSelect.value = data.sector.name;
+                
+                // Fechar modal e limpar campo
+                const modal = bootstrap.Modal.getInstance(document.getElementById('newSectorModal'));
+                modal.hide();
+                document.getElementById('newSectorName').value = '';
+            } else {
+                alert(data.message || 'Erro ao criar setor');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Erro ao criar setor');
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -5,85 +5,45 @@
     <div class="row justify-content-center">
         <div class="col-md-6">
             <div class="card">
-                <div class="card-header py-2">
-                    <h5 class="mb-0">
-                        <i class="fas fa-user-plus me-2"></i>Novo Usuário
-                    </h5>
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-user-plus me-2"></i>Novo Usuário</h5>
                 </div>
                 <div class="card-body">
-                    <form method="POST" class="needs-validation" novalidate>
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <form method="POST" action="{{ url_for('auth.register') }}">
+                        {{ form.hidden_tag() }}
                         
-                        {% with messages = get_flashed_messages() %}
-                        {% if messages %}
-                        <div class="alert alert-info alert-dismissible fade show" role="alert">
-                            {{ messages[0] }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        <div class="mb-3">
+                            <label class="form-label">Nome</label>
+                            {{ form.name(class="form-control") }}
                         </div>
-                        {% endif %}
-                        {% endwith %}
 
-                        <div class="row g-2">
-                            <!-- Nome -->
-                            <div class="col-12">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control" id="name" name="name" placeholder="Nome" required>
-                                    <label for="name">Nome</label>
-                                </div>
-                            </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            {{ form.email(class="form-control") }}
+                        </div>
 
-                            <!-- Email -->
-                            <div class="col-12">
-                                <div class="form-floating">
-                                    <input type="email" class="form-control" id="email" name="email" placeholder="Email" required>
-                                    <label for="email">Email</label>
-                                </div>
-                            </div>
+                        <div class="mb-3">
+                            <label class="form-label">Função</label>
+                            {{ form.role(class="form-select") }}
+                        </div>
 
-                            <!-- Contato -->
-                            <div class="col-12">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control" id="contact" name="contact" placeholder="Contato">
-                                    <label for="contact">Contato</label>
-                                </div>
-                            </div>
+                        <div class="mb-3">
+                            <label class="form-label">Senha</label>
+                            {{ form.password(class="form-control") }}
+                        </div>
 
-                            <!-- Função e Senha -->
-                            <div class="col-md-6">
-                                <div class="form-floating">
-                                    <select class="form-select" id="role" name="role" required>
-                                        <option value="solicitante">Solicitante</option>
-                                        <option value="aprovador">Aprovador</option>
-                                        <option value="administrador">Administrador</option>
-                                    </select>
-                                    <label for="role">Função</label>
-                                </div>
-                            </div>
+                        <div class="mb-3">
+                            <label class="form-label">Confirmar Senha</label>
+                            {{ form.password2(class="form-control") }}
+                        </div>
 
-                            <div class="col-md-6">
-                                <div class="form-floating">
-                                    <input type="password" class="form-control" id="password" name="password" placeholder="Senha" required>
-                                    <label for="password">Senha</label>
-                                </div>
-                            </div>
-
-                            <!-- Status -->
-                            <div class="col-12">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
-                                    <label class="form-check-label" for="is_active">Usuário Ativo</label>
-                                </div>
-                            </div>
-
-                            <!-- Botões -->
-                            <div class="col-12 d-flex gap-2">
-                                <button type="submit" class="btn btn-primary flex-grow-1">
-                                    <i class="fas fa-save me-1"></i>Salvar
-                                </button>
-                                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
-                                    <i class="fas fa-times me-1"></i>Cancelar
-                                </a>
-                            </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Cadastrar Usuário
+                            </button>
+                            <a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
                         </div>
                     </form>
                 </div>
@@ -91,60 +51,4 @@
         </div>
     </div>
 </div>
-
-<style>
-.form-floating {
-    margin-bottom: 0.5rem;
-}
-.form-floating > .form-control,
-.form-floating > .form-select {
-    height: calc(3rem + 2px);
-    line-height: 1.25;
-}
-.form-floating > label {
-    padding: 0.75rem;
-}
-.card {
-    border: none;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,.1);
-}
-.card-header {
-    background-color: transparent;
-    border-bottom: 1px solid rgba(0,0,0,.1);
-}
-.form-check {
-    margin: 0.5rem 0;
-}
-</style>
-{% endblock %}
-
-{% block scripts %}
-<script>
-// Validação do formulário
-(function () {
-    'use strict'
-    var forms = document.querySelectorAll('.needs-validation')
-    Array.prototype.slice.call(forms).forEach(function (form) {
-        form.addEventListener('submit', function (event) {
-            if (!form.checkValidity()) {
-                event.preventDefault()
-                event.stopPropagation()
-            }
-            form.classList.add('was-validated')
-        }, false)
-    })
-})()
-
-// Gerar senha aleatória
-function generatePassword() {
-    const length = 12;
-    const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
-    let password = "";
-    for (let i = 0; i < length; i++) {
-        password += charset.charAt(Math.floor(Math.random() * charset.length));
-    }
-    document.getElementById('password').value = password;
-}
-</script>
 {% endblock %}

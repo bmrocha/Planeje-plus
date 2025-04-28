@@ -5,13 +5,13 @@
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card">
-                <div class="card-header py-2 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="fas fa-user-edit me-2"></i>Editar Usuário
-                    </h5>
+                <div class="card-header">
+                    <h5 class="mb-0">Editar Usuário</h5>
                 </div>
                 <div class="card-body">
-                    <form method="POST" class="needs-validation" novalidate>
+                    <form method="POST" class="needs-validation">
+                        {{ form.hidden_tag() }}
+                        
                         <!-- Nome -->
                         <div class="row mb-3">
                             <label for="name" class="col-sm-3 col-form-label">Nome</label>
@@ -20,12 +20,11 @@
                                     <span class="input-group-text">
                                         <i class="fas fa-user"></i>
                                     </span>
-                                    <input type="text" class="form-control" id="name" name="name" 
-                                           value="{{ user.name }}" required>
+                                    {{ form.name(class="form-control", value=user.name) }}
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Email -->
                         <div class="row mb-3">
                             <label for="email" class="col-sm-3 col-form-label">Email</label>
@@ -34,26 +33,11 @@
                                     <span class="input-group-text">
                                         <i class="fas fa-envelope"></i>
                                     </span>
-                                    <input type="email" class="form-control" id="email" name="email" 
-                                           value="{{ user.email }}" required>
+                                    {{ form.email(class="form-control", value=user.email) }}
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Contato -->
-                        <div class="row mb-3">
-                            <label for="contact" class="col-sm-3 col-form-label">Contato</label>
-                            <div class="col-sm-9">
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-phone"></i>
-                                    </span>
-                                    <input type="text" class="form-control" id="contact" name="contact" 
-                                           value="{{ user.contact }}">
-                                </div>
-                            </div>
-                        </div>
-                        
+
                         <!-- Função -->
                         <div class="row mb-3">
                             <label for="role" class="col-sm-3 col-form-label">Função</label>
@@ -62,21 +46,11 @@
                                     <span class="input-group-text">
                                         <i class="fas fa-user-tag"></i>
                                     </span>
-                                    <select class="form-select" id="role" name="role" required>
-                                        <option value="solicitante" {% if user.role == 'solicitante' %}selected{% endif %}>
-                                            Solicitante
-                                        </option>
-                                        <option value="aprovador" {% if user.role == 'aprovador' %}selected{% endif %}>
-                                            Aprovador
-                                        </option>
-                                        <option value="administrador" {% if user.role == 'administrador' %}selected{% endif %}>
-                                            Administrador
-                                        </option>
-                                    </select>
+                                    {{ form.role(class="form-select") }}
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Nova Senha -->
                         <div class="row mb-3">
                             <label for="password" class="col-sm-3 col-form-label">Nova Senha</label>
@@ -85,8 +59,7 @@
                                     <span class="input-group-text">
                                         <i class="fas fa-lock"></i>
                                     </span>
-                                    <input type="password" class="form-control" id="password" name="password" 
-                                           placeholder="Deixe em branco para manter a senha atual">
+                                    {{ form.password(class="form-control", placeholder="Deixe em branco para manter a senha atual") }}
                                 </div>
                                 <div class="form-text text-muted">
                                     <i class="fas fa-info-circle me-1"></i>
@@ -94,15 +67,16 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Botões -->
                         <div class="card-footer text-end">
-                            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary me-2">
-                                <i class="fas fa-times me-1"></i>Cancelar
-                            </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save me-1"></i>Salvar Alterações
-                            </button>
+                            <div class="d-grid gap-2">
+                                {{ form.submit(class="btn btn-primary") }}
+                                <i class="fas fa-save me-1"></i>
+                                <a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-secondary">
+                                    <i class="fas fa-times me-1"></i>Cancelar
+                                </a>
+                            </div>
                         </div>
                     </form>
                 </div>

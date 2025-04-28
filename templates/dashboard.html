@@ -1,124 +1,187 @@
 {% extends "base.html" %}
 
-{% block styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
-{% endblock %}
-
 {% block content %}
 <div class="dashboard-wrapper">
     <div class="container-fluid main-container">
-        {% if current_user.role in ['solicitante', 'aprovador'] %}
-        <div class="row g-4 section-gap">
-            <div class="col-md-4">
-                <div class="card status-card pending">
-                    <div class="card-body">
-                        <h6 class="card-title">Orçamentos Pendentes</h6>
-                        <h2 class="display-4">{{ user_pendente }}</h2>
-                    </div>
-                </div>
+        <!-- Header do Dashboard -->
+        <div class="dashboard-header mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3 mb-0">Dashboard</h1>
+                {% if current_user.role != 'administrador' %}
+                <a href="{{ url_for('budget.create_budget') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Novo Orçamento
+                </a>
+                {% endif %}
             </div>
-            <div class="col-md-4">
-                <div class="card status-card approved">
-                    <div class="card-body">
-                        <h6 class="card-title">Orçamentos Aprovados</h6>
-                        <h2 class="display-4">{{ user_aprovado }}</h2>
+        </div>
+
+        <!-- Cards de Status -->
+        {% if current_user.role != 'administrador' %}
+        <div class="row g-4 mb-4">
+            {% if current_user.role != 'compras' %}
+            <div class="col-12 col-sm-6 col-lg-4">
+                <a href="{{ url_for('budget.dashboard', status='pendente') }}" class="text-decoration-none">
+                    <div class="status-card pending">
+                        <div class="card-body">
+                            <div class="status-card-content">
+                                <div>
+                                    <h6 class="status-card-title">Pendentes</h6>
+                                    <h2 class="status-card-value">{{ user_pendente }}</h2>
+                                </div>
+                                <div class="status-card-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                </a>
             </div>
-            <div class="col-md-4">
-                <div class="card status-card warning">
-                    <div class="card-body">
-                        <h6 class="card-title">Orçamentos Rejeitados</h6>
-                        <h2 class="display-4">{{ user_rejeitado }}</h2>
+            {% endif %}
+            <div class="col-12 col-sm-6 col-lg-4">
+                <a href="{{ url_for('budget.dashboard', status='aprovado') }}" class="text-decoration-none">
+                    <div class="status-card approved">
+                        <div class="card-body">
+                            <div class="status-card-content">
+                                <div>
+                                    <h6 class="status-card-title">Aprovados</h6>
+                                    <h2 class="status-card-value">{{ user_aprovado }}</h2>
+                                </div>
+                                <div class="status-card-icon">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                </a>
             </div>
+            {% if current_user.role != 'compras' %}
+            <div class="col-12 col-sm-6 col-lg-4">
+                <a href="{{ url_for('budget.dashboard', status='rejeitado') }}" class="text-decoration-none">
+                    <div class="status-card rejected">
+                        <div class="card-body">
+                            <div class="status-card-content">
+                                <div>
+                                    <h6 class="status-card-title">Rejeitados</h6>
+                                    <h2 class="status-card-value">{{ user_rejeitado }}</h2>
+                                </div>
+                                <div class="status-card-icon">
+                                    <i class="fas fa-times"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endif %}
         </div>
         {% endif %}
 
-        <div class="row mt-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">Orçamentos</h5>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead>
-                                    <tr>
-                                        <th class="text-center">ID</th>
-                                        <th>Título</th>
-                                        <th>Solicitado Por</th>
-                                        <th>Setor</th>
-                                        <th>Aprovador</th>
-                                        <th>Data</th>
-                                        <th class="text-center">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for budget in budgets %}
-                                    <tr>
-                                        <td class="text-center">{{ budget.id }}</td>
-                                        <td>{{ budget.title }}</td>
-                                        <td>{{ budget.solicitado }}</td>
-                                        <td>{{ budget.sector }}</td>
-                                        <td>{{ budget.aprovador.name }}</td>
-                                        <td>{{ budget.request_date.strftime('%d/%m/%Y') }}</td>
-                                        <td class="text-center">
-                                            <div class="action-buttons">
-                                                <a href="{{ url_for('view_budget', id=budget.id) }}" 
-                                                   class="btn action-button view" 
-                                                   title="Visualizar">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                                {% if current_user.role == 'solicitante' and budget.status == 'pendente' %}
-                                                <a href="{{ url_for('edit_budget', id=budget.id) }}" 
-                                                   class="btn action-button edit" 
-                                                   title="Editar">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                <button onclick="deleteBudget({{ budget.id }})" 
-                                                        class="btn action-button delete" 
-                                                        title="Deletar">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                                {% endif %}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+        <!-- Filtros -->
+        {% if current_user.role != 'compras' %}
+        <div class="btn-group">
+            <a href="{{ url_for('budget.dashboard', status='todos') }}" 
+               class="btn btn-outline-secondary {% if current_status == 'todos' %}active{% endif %}">
+                Todos
+            </a>
+            <a href="{{ url_for('budget.dashboard', status='pendente') }}" 
+               class="btn btn-outline-secondary {% if current_status == 'pendente' %}active{% endif %}">
+                Pendentes
+            </a>
+            <a href="{{ url_for('budget.dashboard', status='aprovado') }}" 
+               class="btn btn-outline-secondary {% if current_status == 'aprovado' %}active{% endif %}">
+                Aprovados
+            </a>
+            <a href="{{ url_for('budget.dashboard', status='rejeitado') }}" 
+               class="btn btn-outline-secondary {% if current_status == 'rejeitado' %}active{% endif %}">
+                Rejeitados
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- Tabela de Orçamentos -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    {% if current_status == 'pendente' %}
+                        Orçamentos Pendentes
+                    {% elif current_status == 'aprovado' %}
+                        Orçamentos Aprovados
+                    {% elif current_status == 'rejeitado' %}
+                        Orçamentos Rejeitados
+                    {% else %}
+                        Todos os Orçamentos
+                    {% endif %}
+                </h5>
+                <div class="btn-group">
+                    <a href="{{ url_for('budget.dashboard', status='todos') }}" 
+                       class="btn btn-outline-secondary {% if current_status == 'todos' %}active{% endif %}">
+                        Todos
+                    </a>
+                    <a href="{{ url_for('budget.dashboard', status='pendente') }}" 
+                       class="btn btn-outline-secondary {% if current_status == 'pendente' %}active{% endif %}">
+                        Pendentes
+                    </a>
+                    <a href="{{ url_for('budget.dashboard', status='aprovado') }}" 
+                       class="btn btn-outline-secondary {% if current_status == 'aprovado' %}active{% endif %}">
+                        Aprovados
+                    </a>
+                    <a href="{{ url_for('budget.dashboard', status='rejeitado') }}" 
+                       class="btn btn-outline-secondary {% if current_status == 'rejeitado' %}active{% endif %}">
+                        Rejeitados
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th class="text-center">ID</th>
+                                <th>Título</th>
+                                <th>Solicitante</th>
+                                <th>Setor</th>
+                                <th>Aprovador</th>
+                                <th>Data</th>
+                                <th class="text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for budget in budgets %}
+                            <tr>
+                                <td class="text-center">{{ budget.id }}</td>
+                                <td>{{ budget.title }}</td>
+                                <td>{{ budget.solicitado }}</td>
+                                <td>{{ budget.sector }}</td>
+                                <td>{{ budget.assigned_approver.name }}</td>
+                                <td>{{ budget.request_date.strftime('%d/%m/%Y') }}</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a href="{{ url_for('budget.view_budget', id=budget.id) }}" 
+                                           class="btn action-button view" 
+                                           title="Visualizar">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if current_user.role == 'solicitante' and budget.solicitante_id == current_user.id and budget.status == 'pendente' %}
+                                        <a href="{{ url_for('budget.edit_budget', id=budget.id) }}" 
+                                           class="btn action-button edit" 
+                                           title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button onclick="deleteBudget({{ budget.id }}, '{{ budget.title }}')" 
+                                                class="btn action-button delete" 
+                                                title="Deletar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-function deleteBudget(id) {
-    if (confirm('Tem certeza que deseja excluir este orçamento?')) {
-        fetch(`/delete_budget/${id}`, {
-            method: 'DELETE',
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                window.location.reload();
-            } else {
-                alert('Erro ao excluir orçamento');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Erro ao excluir orçamento');
-        });
-    }
-}
-</script>
 {% endblock %}

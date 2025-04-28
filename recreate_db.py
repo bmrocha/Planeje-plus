@@ -1,5 +1,5 @@
 import os
-from app import db, User, app, Budget, Sector, EmailConfig
+from app import db, User, app, Budget, Sector
 from werkzeug.security import generate_password_hash
 from datetime import datetime
 
@@ -30,17 +30,13 @@ with app.app_context():
     )
     db.session.add(admin)
     
-    # Configuração de email padrão
-    email_config = EmailConfig(
-        smtp_server='smtp.gmail.com',
-        smtp_port=587,
-        smtp_username='seu-email@gmail.com',
-        smtp_password='sua-senha-de-app',
-        use_tls=True,
-        default_sender='Sistema de Orçamentos'
-    )
-    db.session.add(email_config)
-
+    # Adicionar setores iniciais
+    setores = ['TI', 'RH', 'Financeiro', 'Comercial', 'Marketing', 'Operações']
+    for setor in setores:
+        sector = Sector(name=setor)
+        db.session.add(sector)
+    
+    # Commit das alterações
     db.session.commit()
     print("Usuário administrador criado")
     print("Banco de dados recriado com sucesso!")

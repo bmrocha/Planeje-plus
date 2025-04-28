@@ -1,329 +1,90 @@
 {% extends "base.html" %}
 
-{% block content %}
-<div class="login-wrapper">
-    <div class="theme-toggle-login" onclick="toggleTheme()">
-        <i class="fas fa-moon"></i>
-    </div>
-    
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-4">
-                <div class="login-card">
-                    <div class="text-center mb-3">
-                        <img src="{{ url_for('static', filename='img/logo-planeje.png') }}" alt="Logo" class="img-fluid mb-3" style="max-width: 150px;">
-                        <h5 class="fw-normal text-secondary mb-0">Gestor de Orçamentos</h5>
-                    </div>
-                    
-                    <form method="POST" action="{{ url_for('login') }}">
-                        {{ form.hidden_tag() }}
-                        <div class="form-group mb-3">
-                            {{ form.email(class="form-control", placeholder="Email") }}
-                        </div>
-                        <div class="form-group mb-3">
-                            {{ form.password(class="form-control", placeholder="Senha") }}
-                        </div>
-                        <div class="d-grid">
-                            {{ form.submit(class="btn btn-primary login-btn") }}
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="developer-info">
-        Desenvolvido por Bruno Martins Rocha<br>
-        <a href="https://wa.me/5531984390045" target="_blank">
-            <i class="fab fa-whatsapp me-1"></i>WhatsApp: 31-98439-0045
-        </a>
-    </div>
-</div>
-{% endblock %}
-
 {% block styles %}
 <style>
-    .login-wrapper {
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        background: linear-gradient(135deg, var(--color-dark) 0%, var(--color-primary) 100%);
+    body {
+        overflow: hidden;
+        margin: 0;
+        padding: 0;
+        height: 100vh;
     }
 
-    .theme-toggle-login {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        cursor: pointer;
-        padding: 8px;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 2px solid transparent;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        background-color: #f8f9fa;
-        color: #495057;
-        border-color: #e9ecef;
+    .content-wrapper {
+        padding: 0;
+        margin: 0;
+        height: 100vh;
     }
 
-    .theme-toggle-login:hover {
-        background-color: #e9ecef;
-        border-color: #dee2e6;
-        color: #212529;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .theme-toggle-login:active {
-        background-color: #dee2e6;
-        transform: translateY(1px);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .theme-toggle-login i {
-        font-size: 1rem;
-        transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .theme-toggle-login:hover i {
-        transform: rotate(180deg);
-    }
-
-    /* Dark theme */
-    .dark-theme .theme-toggle-login {
-        background-color: #343a40;
-        color: #f8f9fa;
-        border-color: #495057;
-    }
-
-    .dark-theme .theme-toggle-login:hover {
-        background-color: #495057;
-        border-color: #6c757d;
-        color: #ffffff;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    }
-
-    .dark-theme .theme-toggle-login:active {
-        background-color: #212529;
-        transform: translateY(1px);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    }
-
-    .login-card {
-        background: rgba(255, 255, 255, 0.95);
-        border-radius: 10px;
-        padding: 1.5rem;
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-        width: 100%;
-        max-width: 320px;
-    }
-
-    .login-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 20px 40px rgba(19, 41, 61, 0.3);
-    }
-
-    .form-control {
-        border: 2px solid var(--color-light);
-        border-radius: 12px;
-        padding: 0.5rem 0.75rem;
-        font-size: 0.9rem;
-        transition: all 0.3s ease;
-        background-color: rgba(232, 241, 242, 0.9);
-        color: var(--color-dark);
-    }
-
-    .form-control:focus {
-        border-color: var(--color-accent);
-        box-shadow: 0 0 0 0.25rem rgba(27, 152, 224, 0.15);
-        background-color: var(--color-light);
-    }
-
-    .form-floating > label {
-        padding: 0.75rem 1rem;
-        color: var(--color-dark);
-    }
-
-    .login-btn {
-        border-radius: 12px;
-        padding: 0.5rem 1rem;
-        font-size: 0.9rem;
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        transition: all 0.3s ease;
-        background-color: var(--color-primary);
-        border-color: var(--color-primary);
-    }
-
-    .login-btn:hover {
-        transform: translateY(-2px);
-        background-color: var(--color-secondary);
-        border-color: var(--color-secondary);
-        box-shadow: 0 5px 15px rgba(0, 100, 148, 0.4);
-    }
-
-    .invalid-feedback {
-        font-size: 0.875rem;
-        color: #dc3545;
-        margin-top: 0.25rem;
-    }
-
-    [data-bs-theme="dark"] .login-wrapper {
-        background: linear-gradient(135deg, var(--color-dark) 0%, var(--color-primary) 100%);
-    }
-
-    [data-bs-theme="dark"] .login-card {
-        background: rgba(19, 41, 61, 0.95);
-        border-color: rgba(232, 241, 242, 0.1);
-    }
-
-    [data-bs-theme="dark"] .form-control {
-        background-color: rgba(232, 241, 242, 0.1);
-        border-color: rgba(232, 241, 242, 0.1);
-        color: var(--color-light);
-    }
-
-    [data-bs-theme="dark"] .form-control:focus {
-        background-color: rgba(232, 241, 242, 0.15);
-        border-color: var(--color-accent);
-    }
-
-    [data-bs-theme="dark"] .form-floating > label {
-        color: rgba(232, 241, 242, 0.7);
-    }
-
-    [data-bs-theme="dark"] .text-secondary {
-        color: rgba(232, 241, 242, 0.7) !important;
-    }
-
-    [data-bs-theme="light"] .theme-toggle-login {
-        background-color: #f8f9fa;
-        color: #495057;
-        border-color: #e9ecef;
-    }
-
-    [data-bs-theme="light"] .theme-toggle-login:hover {
-        background-color: #e9ecef;
-        border-color: #dee2e6;
-        color: #212529;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    [data-bs-theme="dark"] .theme-toggle-login {
-        background-color: #343a40;
-        color: #f8f9fa;
-        border-color: #495057;
-    }
-
-    [data-bs-theme="dark"] .theme-toggle-login:hover {
-        background-color: #495057;
-        border-color: #6c757d;
-        color: #ffffff;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    }
-
-    .developer-info {
-        margin-top: 2rem;
-        text-align: center;
-        color: rgba(255, 255, 255, 0.9);
-        font-size: 0.85rem;
-    }
-
-    .developer-info a {
-        color: rgba(255, 255, 255, 0.9);
-        text-decoration: none;
-        transition: color 0.3s ease;
-    }
-
-    .developer-info a:hover {
-        color: #fff;
-    }
-
-    .form-group {
-        margin-bottom: 0.75rem;
-    }
-
-    .mb-4 {
-        margin-bottom: 1rem !important;
-    }
-
-    .mb-3 {
-        margin-bottom: 0.75rem !important;
-    }
-
-    @media (max-width: 768px) {
-        .login-card {
-            padding: 2rem;
-            margin: 1rem;
+    /* Animações */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
         }
-        
-        .theme-toggle-login {
-            top: 15px;
-            right: 15px;
-            width: 40px;
-            height: 40px;
+        to {
+            opacity: 1;
+            transform: translateY(0);
         }
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
     }
 </style>
 {% endblock %}
 
-{% block scripts %}
-<script>
-function toggleTheme() {
-    const html = document.documentElement;
-    const themeToggle = document.querySelector('.theme-toggle-login');
-    const icon = themeToggle.querySelector('i');
-    const currentTheme = html.getAttribute('data-bs-theme');
-    
-    if (currentTheme === 'dark') {
-        html.setAttribute('data-bs-theme', 'light');
-        icon.classList.remove('fa-sun');
-        icon.classList.add('fa-moon');
-        localStorage.setItem('theme', 'light');
-    } else {
-        html.setAttribute('data-bs-theme', 'dark');
-        icon.classList.remove('fa-moon');
-        icon.classList.add('fa-sun');
-        localStorage.setItem('theme', 'dark');
-    }
-}
+{% block content %}
+<div class="login-wrapper">
+    <div class="login-container">
+        <div class="login-card animate-fadeInUp">
+            <div class="login-header text-center mb-4">
+                <img src="{{ url_for('static', filename='img/logo-planeje.png') }}" alt="Logo Planeje+" class="login-logo mb-3 animate-pulse">
+                <h5 class="text-muted fw-semibold mb-1 animate-fadeIn">Gestor de Orçamentos</h5>
+            </div>
+            
+            <form method="POST" action="{{ url_for('auth.login') }}" class="login-form">
+                {{ form.hidden_tag() }}
+                
+                <div class="form-group mb-3">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-envelope text-muted"></i>
+                        </span>
+                        {{ form.email(class="form-control", placeholder="Seu email") }}
+                    </div>
+                </div>
 
-document.addEventListener('DOMContentLoaded', function() {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    const html = document.documentElement;
-    const themeIcon = document.querySelector('.theme-toggle-login i');
-    
-    html.setAttribute('data-bs-theme', savedTheme);
-    if (themeIcon) {
-        themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-    }
+                <div class="form-group mb-4">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-lock text-muted"></i>
+                        </span>
+                        {{ form.password(class="form-control", placeholder="Sua senha") }}
+                    </div>
+                </div>
 
-    // Detectar preferência do sistema
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
-    if (!localStorage.getItem('theme')) {
-        if (prefersDark.matches) {
-            html.setAttribute('data-bs-theme', 'dark');
-            themeIcon.className = 'fas fa-sun';
-        }
-    }
+                <div class="d-grid gap-2 mb-3">
+                    {{ form.submit(class="btn btn-secondary") }}
+                </div>
+            </form>
 
-    prefersDark.addEventListener('change', (e) => {
-        if (!localStorage.getItem('theme')) {
-            if (e.matches) {
-                html.setAttribute('data-bs-theme', 'dark');
-                themeIcon.className = 'fas fa-sun';
-            } else {
-                html.setAttribute('data-bs-theme', 'light');
-                themeIcon.className = 'fas fa-moon';
-            }
-        }
-    });
-});
-</script>
+            <div class="developer-info text-center mt-3">
+                <a href="https://wa.me/5531984390045?text=Olá,%20gostaria%20de%20saber%20mais%20sobre%20o%20sistema!" target="_blank" class="whatsapp-link">
+                    <i class="fab fa-whatsapp" style="color: #25D366;"></i>
+                    <span>(31) 98439-0045</span>
+                </a>
+                <div class="mt-2">
+                    <small class="text-muted" style="font-size: 0.7rem;">Desenvolvido por: Bruno Martins Rocha</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

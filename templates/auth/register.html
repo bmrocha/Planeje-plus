@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="login-wrapper">
+    <div class="login-container">
+        <div class="login-card animate-fadeInUp">
+            <form method="POST" class="login-form needs-validation">
+                {{ form.hidden_tag() }}
+                
+                <div class="text-center mb-4">
+                    <img src="{{ url_for('static', filename='img/logo-planeje.png') }}" alt="Logo" class="login-logo">
+                    <h4 class="mb-3">Novo Usuário</h4>
+                </div>
+
+                <!-- Nome -->
+                <div class="mb-3">
+                    <label for="name" class="form-label">Nome</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-user"></i>
+                        </span>
+                        {{ form.name(class="form-control", required=true) }}
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-envelope"></i>
+                        </span>
+                        {{ form.email(class="form-control", required=true) }}
+                    </div>
+                </div>
+
+                <!-- Contato -->
+                <div class="mb-3">
+                    <label for="contact" class="form-label">Contato</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-phone"></i>
+                        </span>
+                        {{ form.contact(class="form-control") }}
+                    </div>
+                </div>
+
+                <!-- Função -->
+                <div class="mb-3">
+                    <label for="role" class="form-label">Função</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-user-tag"></i>
+                        </span>
+                        {{ form.role(class="form-select", required=true) }}
+                    </div>
+                </div>
+
+                <!-- Senha -->
+                <div class="mb-3">
+                    <label for="password" class="form-label">Senha</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-lock"></i>
+                        </span>
+                        {{ form.password(class="form-control", required=true) }}
+                    </div>
+                </div>
+
+                <!-- Botões -->
+                <div class="d-grid gap-2">
+                    {{ form.submit(class="btn btn-primary") }}
+                    <a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Voltar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 
